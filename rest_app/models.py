@@ -42,7 +42,8 @@ class JobResult(BaseModel):
     error: Optional[str] = Field(
         None, description="Error message. Null if the status is not 'Failed'.\n"
     )
-    result: Optional[NewickTree] = None
+    newick: Optional[NewickTree] = None
+    sequences: Optional[List[SequenceId]] = None
 
 
 class CgmlstMethod(Enum):

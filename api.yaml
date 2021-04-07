@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Analysis Control
-  version: '0.3'
+  version: '0.4'
   description: API for controlling analysis jobs on the SOFI platform
   contact:
     name: ssi.dk
@@ -169,6 +169,12 @@ components:
     NewickTree:
       type: string
       description: Newick representation of a comparative analysis
+    
+    SequenceIdList:
+      type: array
+      items:
+            $ref: '#/components/schemas/SequenceId'
+      description: List of SequenceId's
 
     JobResult:
       type: object
@@ -184,10 +190,13 @@ components:
         result:
           allOf:
             - $ref: '#/components/schemas/NewickTree'
+            - $ref: '#/components/schemas/SequenceIdList'
             - nullable: true
             - description: >
-                The resulting newick tree of the analysis.
-                Null if the status is not 'Succeeded'.
+                Can (but will not necessarily) contain result data from an analysis.
+                If a result is provided it can either be the form of a NewickTree or a list of SequenceId's.
+                However, in many circumstances the analysis result will only exist in a database, or even just on a filesystem.
+                Will always be Null if the status is not 'Succeeded'.
     CgmlstMethod:
       type: string
       enum: ["single_linkage", "complete_linkage"]
