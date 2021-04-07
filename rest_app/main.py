@@ -16,6 +16,7 @@ from .models import (
     JobId,
     JobResponse,
     JobResult,
+    JobStatus,
 )
 
 app = FastAPI(
@@ -63,7 +64,10 @@ def get_job_status(job_id: Optional[JobId] = None) -> JobResult:
     """
     Get the current status of a job
     """
-    pass
+    job_status = JobStatus(value="Succeeded")
+    job_result = JobResult()
+    job_result.status = job_status
+    return job_result
 
 
 @app.post('/result/store', response_model=JobResult)
