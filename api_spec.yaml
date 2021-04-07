@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: Analysis Control
+  version: '0.3'
+  description: API for controlling analysis jobs on the SOFI platform
+  contact:
+    name: ssi.dk
+servers:
+  - url: 'http://localhost:9090/api'
+tags:
+  - description: Operations that compare several sequences
+    name: comparative
+  - description: Operations that analyze individual isolates
+    name: isolate
+  - description: Operations for checking the status of a job
+    name: status
+
+paths:
+
+  /comparison/cgmlst:
+    post:
+      summary: Initiate a cgMLST comparative analysis job
+      description: Start a cgMLST comparative analysis job and return a job_id
+      operationId: init_cgmlst
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitCgmlstRequest'
+        description: Parameters for executing an cgMLST comparison
+      tags:
+        - comparative
+
+  /comparison/nearest_neighbors:
+    post:
+      summary: Initiate an Nearest Neighbors comparative analysis job
+      description: Start a Nearest Neighbors analysis job and return a job_id
+      operationId: init_nearest_neighbors
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitNearestNeighborRequest'
+        description: Parameters for executing an Nearest Neighbors comparison
+      tags:
+        - comparative
+
+  /comparison/snp:
+    post:
+      summary: Initiate an SNP comparative analysis job
+      description: Start an SNP comparison job and return a job_id
+      operationId: init_snp
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitSnpRequest'
+        description: Parameters for executing an SNP comparison
+      tags:
+        - comparative
+
+  /sofi/reprocess:
+    post:
+      summary: Initiate reprocessing of a sequence
+      description: >
+        Submit a sequence for reprocessing via a Bifrost pipeline and return a job_id
+      operationId: init_sofi_reprocess
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitSofiReprocessRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+      tags:
+        - isolate
+
+  /result/status:
+    get:
+      summary: Get the current status of a job
+      description: Poll the status for job with given job_id
+      operationId: get_job_status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResult'
+      parameters:
+        - in: query
+          name: job_id
+          schema:
+            $ref: '#/components/schemas/JobId'
+      tags:
+        - status
+
+  /result/store:
+    post:
+      summary: Store a job result for later retrieval
+      description: Mark job with given job_id for longer term storage
+      operationId: post_job_store
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResult'
+      parameters:
+        - in: query
+          name: job_id
+          schema:
+            $ref: '#/components/schemas/JobId'
+      tags:
+        - status
+
+components:
+
+  schemas:
+
+    SequenceId:
+      type: string
+      description: >
+        A unique identifier for a sequence formatted as 'IsolateId_RunId'.
+        Corresponds to the sequence file, but doesn't contain the file extension
+
+    JobId:
+      type: string
+      description: Unique identifier for a Job
+
+    JobResponse:
+      type: object
+      description: Success response to a job init request
+      properties:
+        job_id:
+          $ref: '#/components/schemas/JobId'
+
+    JobStatus:
+      type: string
+      enum: ["Pending", "Succeeded", "Failed"]
+
+    NewickTree:
+      type: string
+      description: Newick representation of a comparative analysis
+
+    JobResult:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        error:
+          type: string
+          nullable: true
+          description: >
+            Error message.
+            Null if the status is not 'Failed'.
+        result:
+          allOf:
+            - $ref: '#/components/schemas/NewickTree'
+            - nullable: true
+            - description: >
+                The resulting newick tree of the analysis.
+                Null if the status is not 'Succeeded'.
+    CgmlstMethod:
+      type: string
+      enum: ["single_linkage", "complete_linkage"]
+
+    StCutoffMap:
+      description: Map of ST keys (IDs) to values (default cut-offs)
+      type: object
+      additionalProperties:
+        type: number
+
+    InitNearestNeighborRequest:
+      type: object
+      description: Parameters for initializing a nearest neighbor comparison
+      properties:
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceId'
+
+    InitSnpRequest:
+      type: object
+      description: Parameters for initializing an SNP comparative analysis
+      properties:
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceId'
+
+    InitCgmlstRequest:
+      type: object
+      description: Parameters for initializing a cgMLST comparative analysis
+      properties:
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceId'
+        method:
+          $ref: '#/components/schemas/CgmlstMethod'
+        identified_species:
+          type: string
+        st:
+          $ref: '#/components/schemas/StCutoffMap'
+
+    InitSofiReprocessRequest:
+      type: object
+      description: Parameters for reprocessing a sequence through SOFI pipeline
+      properties:
+        sequence_id:
+          $ref: '#/components/schemas/SequenceId'
+
