@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Analysis Control
-  version: '0.4'
+  version: '0.5'
   description: API for controlling analysis jobs on the SOFI platform
   contact:
     name: ssi.dk
@@ -80,7 +80,7 @@ paths:
       tags:
         - comparative
 
-  /sofi/reprocess:
+  /bifrost/reprocess:
     post:
       summary: Initiate reprocessing of a sequence
       description: >
@@ -90,7 +90,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InitSofiReprocessRequest'
+              $ref: '#/components/schemas/InitBifrostReprocessRequest'
       responses:
         '202':
           description: Accepted
@@ -240,10 +240,12 @@ components:
         st:
           $ref: '#/components/schemas/StCutoffMap'
 
-    InitSofiReprocessRequest:
+    InitBifrostReprocessRequest:
       type: object
       description: Parameters for reprocessing a sequence through SOFI pipeline
       properties:
         sequence_id:
           $ref: '#/components/schemas/SequenceId'
+        component_name:
+          type: string
 
