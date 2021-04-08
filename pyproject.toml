@@ -8,6 +8,7 @@ authors = ["Finn Gruwier Larsen <finn@gruwier.dk>"]
 python = "^3.8"
 fastapi = "^0.63.0"
 uvicorn = {extras = ["standard"], version = "^0.13.4"}
+grapetree = "^2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
