@@ -101,6 +101,19 @@ paths:
       tags:
         - isolate
 
+  /list/bifrost_analyses:
+    get:
+      summary: Get the current list of Bifrost analyses
+      description: Get the list of Bifrost analyses that are made available for reprocessing.
+      operationId: get_bifrost_analysis_list
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BifrostAnalyses'
+  
   /result/status:
     get:
       summary: Get the current status of a job
@@ -197,6 +210,7 @@ components:
                 If a result is provided it can either be the form of a NewickTree or a list of SequenceId's.
                 However, in many circumstances the analysis result will only exist in a database, or even just on a filesystem.
                 Will always be Null if the status is not 'Succeeded'.
+
     CgmlstMethod:
       type: string
       enum: ["single_linkage", "complete_linkage"]
@@ -246,6 +260,23 @@ components:
       properties:
         sequence_id:
           $ref: '#/components/schemas/SequenceId'
-        component_name:
+        analysis_display_name:
           type: string
 
+    BifrostAnalyses:
+      type: object
+      description: List of Bifrost analyses
+      properties:
+        analyses:
+          type: array
+          items:
+            $ref: '#/components/schemas/BifrostAnalysis'
+
+    BifrostAnalysis:
+      type: object
+      description: Bifrost analysis (aka. Bifrost component or Bifrost pipeline)
+      properties:
+        display_name:
+          type: string
+        version:
+          type: string
