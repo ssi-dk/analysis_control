@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Analysis Control
-  version: '0.5'
+  version: '0.6'
   description: API for controlling analysis jobs on the SOFI platform
   contact:
     name: ssi.dk
@@ -85,7 +85,7 @@ paths:
       summary: Initiate reprocessing of a sequence
       description: >
         Submit a sequence for reprocessing via a Bifrost pipeline and return a job_id
-      operationId: init_sofi_reprocess
+      operationId: init_bifrost_reprocess
       requestBody:
         content:
           application/json:
