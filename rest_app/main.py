@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from typing import Optional
-import subprocess
+import asyncio
 
 from fastapi import FastAPI
 
@@ -38,22 +38,22 @@ def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobRespo
 
 
 @app.post('/comparison/cgmlst', response_model=JobResponse)
-def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
+async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
-    print('popen4:')
-    proc = subprocess.Popen(
-        'python generate_newick.py 1>&2',
-        shell=True,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+    cmd = 'python generate_newick.py 1>&2'
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
-    msg = 'through stdin to stdout\n'.encode('utf-8')
-    stdout_value, stderr_value = proc.communicate(msg)
-    print('combined_output:', repr(stdout_value.decode('utf-8')))
-    print('stderr value   :', repr(stderr_value))
+    stdout, stderr = await proc.communicate()
+    print(f'[{cmd!r} exited with {proc.returncode}]')
+    if stdout:
+        print(f'[stdout]\n{stdout.decode()}')
+    if stderr:
+        print(f'[stderr]\n{stderr.decode()}')
     job_response = JobResponse()
     job_response.job_id = 1
     return job_response
