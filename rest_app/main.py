@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from typing import Optional
+import subprocess
 
 from fastapi import FastAPI
 
@@ -41,6 +42,18 @@ def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
+    print('popen4:')
+    proc = subprocess.Popen(
+        'cat -;  echo "to stderr" 1>&2',
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    msg = 'through stdin to stdout\n'.encode('utf-8')
+    stdout_value, stderr_value = proc.communicate(msg)
+    print('combined_output:', repr(stdout_value.decode('utf-8')))
+    print('stderr value   :', repr(stderr_value))
     job_response = JobResponse()
     job_response.job_id = 1
     return job_response
