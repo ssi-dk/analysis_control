@@ -41,7 +41,9 @@ def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
-    pass
+    job_response = JobResponse()
+    job_response.job_id = 1
+    return job_response
 
 
 @app.post('/comparison/nearest_neighbors', response_model=JobResponse)
