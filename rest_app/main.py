@@ -44,7 +44,7 @@ def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     print('popen4:')
     proc = subprocess.Popen(
-        'cat -;  echo "to stderr" 1>&2',
+        'python generate_newick.py 1>&2',
         shell=True,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
