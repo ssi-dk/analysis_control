@@ -95,11 +95,12 @@ def get_job_status(job_id: str) -> JobResult:
     Get the current status of a job
     """
     print(job_id)
-    status, result = r.hmget(job_id, ('status', 'result'))
+    status, result, error = r.hmget(job_id, ('status', 'result', 'error'))
     job_status = JobStatus(value=status)
     job_result = JobResult()
     job_result.status = job_status
     job_result.result = result
+    job_result.error = error
     return job_result
 
 
