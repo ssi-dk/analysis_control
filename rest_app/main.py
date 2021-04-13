@@ -99,6 +99,7 @@ def get_job_status(job_id: str) -> JobResult:
     job_status = JobStatus(value=status)
     job_result = JobResult()
     job_result.status = job_status
+    job_result.result = result
     return job_result
 
 
