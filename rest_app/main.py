@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Optional
 import asyncio
+from uuid import uuid4
 
 from fastapi import FastAPI
 
@@ -42,6 +43,8 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
+    job_response = JobResponse()
+    job_response.job_id = str(uuid4())
     cmd = 'python generate_newick.py 1>&2'
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -54,8 +57,6 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
         print(f'[stdout]\n{stdout.decode()}')
     if stderr:
         print(f'[stderr]\n{stderr.decode()}')
-    job_response = JobResponse()
-    job_response.job_id = 1
     return job_response
 
 
