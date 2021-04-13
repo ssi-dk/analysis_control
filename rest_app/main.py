@@ -46,7 +46,7 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     Initiate a cgMLST comparative analysis job
     """
     job_id = str(uuid4())
-    # r.hmset()
+    r.hmset(job_id, {'status': 'pending'})
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
         cmd,
