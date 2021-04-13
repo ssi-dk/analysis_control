@@ -9,6 +9,7 @@ import asyncio
 from uuid import uuid4
 
 from fastapi import FastAPI
+import redis
 
 from .models import (
     BifrostAnalyses,
@@ -29,6 +30,7 @@ app = FastAPI(
     contact={'name': 'ssi.dk'},
 )
 
+r = redis.Redis()
 
 @app.post('/bifrost/reprocess', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobResponse:
@@ -43,8 +45,8 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
-    job_response = JobResponse()
-    job_response.job_id = str(uuid4())
+    job_id = str(uuid4())
+    # r.hmset()
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -52,11 +54,13 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
         stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
-    print(f'[{cmd!r} exited with {proc.returncode}]')
-    if stdout:
-        print(f'[stdout]\n{stdout.decode()}')
-    if stderr:
-        print(f'[stderr]\n{stderr.decode()}')
+    if proc.returncode == 0:
+        value = stdout.decode()
+    else:
+        value = stderr.decode()
+    print(value)
+    job_response = JobResponse()
+    job_response.job_id = job_id
     return job_response
 
 
