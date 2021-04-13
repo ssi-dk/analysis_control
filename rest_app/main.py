@@ -46,7 +46,7 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     Initiate a cgMLST comparative analysis job
     """
     job_id = str(uuid4())
-    r.hmset(job_id, {'status': 'pending'})
+    r.hmset(job_id, {'status': 'Pending'})
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -56,10 +56,10 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     stdout, stderr = await proc.communicate()
     if proc.returncode == 0:
         r.hmset(job_id, {'result': stdout.decode()})
-        r.hmset(job_id, {'status': 'completed'})
+        r.hmset(job_id, {'status': 'Succeeded'})
     else:
         r.hmset(job_id, {'error': stderr.decode()})
-        r.hmset(job_id, {'status': 'failed'})
+        r.hmset(job_id, {'status': 'Failed'})
     job_response = JobResponse()
     job_response.job_id = job_id
     return job_response
@@ -90,10 +90,11 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
 
 
 @app.get('/result/status', response_model=JobResult)
-def get_job_status(job_id: Optional[JobId] = None) -> JobResult:
+def get_job_status(job_id: str) -> JobResult:
     """
     Get the current status of a job
     """
+    print(job_id)
     job_status = JobStatus(value="Succeeded")
     job_result = JobResult()
     job_result.status = job_status
