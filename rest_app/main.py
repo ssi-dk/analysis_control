@@ -55,10 +55,10 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     )
     stdout, stderr = await proc.communicate()
     if proc.returncode == 0:
-        r.hmset(job_id, {'result': stdout.decode()})
+        r.hmset(job_id, {'result': stdout})
         r.hmset(job_id, {'status': 'Succeeded'})
     else:
-        r.hmset(job_id, {'error': stderr.decode()})
+        r.hmset(job_id, {'error': stderr})
         r.hmset(job_id, {'status': 'Failed'})
     job_response = JobResponse()
     job_response.job_id = job_id
