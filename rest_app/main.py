@@ -30,7 +30,7 @@ app = FastAPI(
     contact={'name': 'ssi.dk'},
 )
 
-r = redis.Redis()
+r = redis.Redis(charset="utf-8", decode_responses=True)
 
 @app.post('/bifrost/reprocess', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobResponse:
@@ -95,7 +95,8 @@ def get_job_status(job_id: str) -> JobResult:
     Get the current status of a job
     """
     print(job_id)
-    job_status = JobStatus(value="Succeeded")
+    status, result = r.hmget(job_id, ('status', 'result'))
+    job_status = JobStatus(value=status)
     job_result = JobResult()
     job_result.status = job_status
     return job_result
