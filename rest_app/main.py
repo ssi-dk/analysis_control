@@ -41,13 +41,13 @@ def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobRespo
 
 
 @app.post('/comparison/cgmlst', response_model=JobResponse)
-async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
+def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
     job_id = str(uuid4())
     r.hmset(job_id, {'status': 'Pending'})
-    do_cgmlst(job_id)  # dont'await; function must return before do_cgmlst is finished
+    asyncio.run(do_cgmlst(job_id))  # Don't wait for do_cgmlst to finish
     job_response = JobResponse()
     job_response.job_id = job_id
     return job_response
