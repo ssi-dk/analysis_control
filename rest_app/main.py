@@ -55,7 +55,7 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
 
 async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
     start_time = datetime.now()
-    cmd = 'python generate_newick.py'
+    cmd = 'python generate_newick.py profile_file=hej'
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
