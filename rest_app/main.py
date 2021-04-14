@@ -48,12 +48,12 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     job_id = str(uuid4())
     r.hmset(job_id, {'status': 'Pending'})
-    asyncio.create_task(do_cgmlst(job_id))  # Don't wait for do_cgmlst to finish
+    asyncio.create_task(do_cgmlst(job_id, body))  # Don't wait for do_cgmlst to finish
     job_response = JobResponse()
     job_response.job_id = job_id
     return job_response
 
-async def do_cgmlst(job_id: str):
+async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
     start_time = datetime.now()
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
