@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Optional
 import asyncio
 from uuid import uuid4
+from datetime import datetime
 
 from fastapi import FastAPI
 import redis
@@ -53,6 +54,7 @@ def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     return job_response
 
 async def do_cgmlst(job_id: str):
+    start_time = datetime.now()
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -60,10 +62,12 @@ async def do_cgmlst(job_id: str):
         stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
+    end_time = datetime.now()
+    processing_time = end_time - start_time
     if proc.returncode == 0:
-        r.hmset(job_id, {'result': stdout, 'status': 'Succeeded'})
+        r.hmset(job_id, {'result': stdout, 'status': 'Succeeded', 'seconds': processing_time.seconds})
     else:
-        r.hmset(job_id, {'error': stderr, 'status': 'Failed'})
+        r.hmset(job_id, {'error': stderr, 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
 @app.post('/comparison/nearest_neighbors', response_model=JobResponse)
@@ -95,12 +99,13 @@ def get_job_status(job_id: str) -> JobResult:
     """
     Get the current status of a job
     """
-    status, result, error = r.hmget(job_id, ('status', 'result', 'error'))
+    status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
     job_status = JobStatus(value=status)
     job_result = JobResult()
     job_result.status = job_status
     job_result.result = result
     job_result.error = error
+    job_result.seconds = seconds
     return job_result
 
 

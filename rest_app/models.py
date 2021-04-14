@@ -51,6 +51,7 @@ class JobResult(BaseModel):
         None, description="Error message. Null if the status is not 'Failed'.\n"
     )
     result: Optional[Result] = None
+    seconds: Optional[int] = None
 
 
 class CgmlstMethod(Enum):
