@@ -47,6 +47,12 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     job_id = str(uuid4())
     r.hmset(job_id, {'status': 'Pending'})
+    do_cgmlst(job_id)  # dont'await; function must return before do_cgmlst is finished
+    job_response = JobResponse()
+    job_response.job_id = job_id
+    return job_response
+
+async def do_cgmlst(job_id: str):
     cmd = 'python generate_newick.py'
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -58,9 +64,6 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
         r.hmset(job_id, {'result': stdout, 'status': 'Succeeded'})
     else:
         r.hmset(job_id, {'error': stderr, 'status': 'Failed'})
-    job_response = JobResponse()
-    job_response.job_id = job_id
-    return job_response
 
 
 @app.post('/comparison/nearest_neighbors', response_model=JobResponse)
@@ -92,7 +95,6 @@ def get_job_status(job_id: str) -> JobResult:
     """
     Get the current status of a job
     """
-    print(job_id)
     status, result, error = r.hmget(job_id, ('status', 'result', 'error'))
     job_status = JobStatus(value=status)
     job_result = JobResult()
