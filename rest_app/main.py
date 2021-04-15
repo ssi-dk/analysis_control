@@ -8,6 +8,8 @@ from typing import Optional
 import asyncio
 from uuid import uuid4
 from datetime import datetime
+import os
+import pathlib
 
 from fastapi import FastAPI
 import redis
@@ -55,7 +57,10 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
 
 async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
     start_time = datetime.now()
-    cmd = 'python generate_newick.py profile_file=hej'
+    app_root = pathlib.Path(os.path.realpath(__file__)).parent.parent
+    # For now, we just use a test file
+    profile_file = app_root.joinpath('test_data').joinpath('Achromobacter.tsv')
+    cmd = f"python generate_newick.py {profile_file}"
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
