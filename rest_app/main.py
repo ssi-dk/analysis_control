@@ -13,6 +13,7 @@ import pathlib
 
 from fastapi import FastAPI
 import redis
+from pymongo import MongoClient
 
 from .models import (
     BifrostAnalyses,
@@ -34,6 +35,11 @@ app = FastAPI(
 )
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
+BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY")
+print(f"Database: {BIFROST_DB_KEY}")
+mongo_client = MongoClient(BIFROST_DB_KEY)
+db = mongo_client.get_database()
+print(db.list_collection_names())
 
 @app.post('/bifrost/reprocess', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobResponse:
