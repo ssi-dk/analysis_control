@@ -60,7 +60,7 @@ async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
     app_root = pathlib.Path(os.path.realpath(__file__)).parent.parent
     # For now, we just use a test file
     profile_file = app_root.joinpath('test_data').joinpath('Achromobacter.tsv')
-    cmd = f"python generate_newick.py {profile_file}"
+    cmd = f"python commands/generate_newick.py {profile_file}"
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
