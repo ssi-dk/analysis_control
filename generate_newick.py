@@ -1,5 +1,6 @@
 import os
 import argparse
+from sys import stdout
 
 from grapetree import module
 
@@ -10,4 +11,4 @@ args = parser.parse_args()
 with open(args.profile_file, 'r') as f:
     profile = f.read()
     newick = module.MSTrees.backend(profile=profile)
-    print(newick)
+    stdout.write(newick)
