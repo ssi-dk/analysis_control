@@ -56,9 +56,8 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     job_id = str(uuid4())
     r.hmset(job_id, {'status': 'Pending'})
-    asyncio.create_task(do_cgmlst(job_id, body))  # Don't wait for do_cgmlst to finish
-    job_response = JobResponse()
-    job_response.job_id = job_id
+    asyncio.create_task(do_cgmlst(job_id, body))
+    job_response = JobResponse(job_id=job_id)
     return job_response
 
 async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
@@ -86,7 +85,11 @@ def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobRespon
     """
     Initiate an Nearest Neighbors comparative analysis job
     """
-    pass
+    job_id = str(uuid4())
+    r.hmset(job_id, {'status': 'Pending'})
+    # asyncio.create_task(do_cgmlst(job_id, body))
+    job_response = JobResponse(job_id=job_id)
+    return job_response
 
 
 @app.post('/comparison/snp', response_model=JobResponse)
