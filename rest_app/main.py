@@ -81,16 +81,30 @@ async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
 
 
 @app.post('/comparison/nearest_neighbors', response_model=JobResponse)
-def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobResponse:
+async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobResponse:
     """
     Initiate an Nearest Neighbors comparative analysis job
     """
     job_id = str(uuid4())
     r.hmset(job_id, {'status': 'Pending'})
-    # asyncio.create_task(do_cgmlst(job_id, body))
+    asyncio.create_task(do_nearest_neighbors(job_id, body))
     job_response = JobResponse(job_id=job_id)
     return job_response
 
+
+async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
+    start_time = datetime.now()
+    # For now, we return a random number of random sample ID's
+    try:
+        sample_list = ''
+    except Exception as e:
+        end_time = datetime.now()
+        processing_time = end_time - start_time
+        r.hmset(job_id, {'error': e.message, 'status': 'Failed', 'seconds': processing_time.seconds})
+    end_time = datetime.now()
+    processing_time = end_time - start_time
+    r.hmset(job_id, {'result': sample_list, 'status': 'Succeeded', 'seconds': processing_time.seconds})
+        
 
 @app.post('/comparison/snp', response_model=JobResponse)
 def init_snp(body: InitSnpRequest = None) -> JobResponse:
