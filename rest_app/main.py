@@ -95,16 +95,17 @@ async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> Job
 
 async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
     start_time = datetime.now()
-    # For now, we return a random number of random sample ID's
+    # For now, we just return the first 10 sample ID's
     try:
-        sample_list = ['1', '2', '3', banana]
+        sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
+        sample_ids = [ str(element['_id']) for element in sample_ids_cursor ]
+        end_time = datetime.now()
+        processing_time = end_time - start_time
+        r.hmset(job_id, {'result': json.dumps(sample_ids), 'status': 'Succeeded', 'seconds': processing_time.seconds})
     except Exception as e:
         end_time = datetime.now()
         processing_time = end_time - start_time
         r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
-    end_time = datetime.now()
-    processing_time = end_time - start_time
-    r.hmset(job_id, {'result': json.dumps(sample_list), 'status': 'Succeeded', 'seconds': processing_time.seconds})
         
 
 @app.post('/comparison/snp', response_model=JobResponse)
