@@ -97,11 +97,11 @@ async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
     start_time = datetime.now()
     # For now, we return a random number of random sample ID's
     try:
-        sample_list = ['1', '2', '3']
+        sample_list = ['1', '2', '3', banana]
     except Exception as e:
         end_time = datetime.now()
         processing_time = end_time - start_time
-        r.hmset(job_id, {'error': e.message, 'status': 'Failed', 'seconds': processing_time.seconds})
+        r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
     end_time = datetime.now()
     processing_time = end_time - start_time
     r.hmset(job_id, {'result': json.dumps(sample_list), 'status': 'Succeeded', 'seconds': processing_time.seconds})
