@@ -55,7 +55,7 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
-    job_id = str(uuid4())
+    job_id = str(uuid4()) + '.internal'
     r.hmset(job_id, {'status': 'Running'})
     asyncio.create_task(do_cgmlst(job_id, body))
     job_response = JobResponse(job_id=job_id)
@@ -86,7 +86,7 @@ async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> Job
     """
     Initiate an Nearest Neighbors comparative analysis job
     """
-    job_id = str(uuid4())
+    job_id = str(uuid4()) + '.internal'
     r.hmset(job_id, {'status': 'Running'})
     asyncio.create_task(do_nearest_neighbors(job_id, body))
     job_response = JobResponse(job_id=job_id)
