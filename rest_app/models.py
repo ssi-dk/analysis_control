@@ -26,9 +26,11 @@ class JobResponse(BaseModel):
 
 
 class JobStatus(Enum):
-    Pending = 'Pending'
+    Queued = 'Queued'
+    Running = 'Running'
     Succeeded = 'Succeeded'
     Failed = 'Failed'
+    Other = 'Other'
 
 
 class NewickTree(BaseModel):
