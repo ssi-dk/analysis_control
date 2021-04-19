@@ -10,4 +10,7 @@ if not tmp_path.exists():
     shutil.copyfile(template_path, tmp_path)
 with open(tmp_path, 'r+') as f:
     pid = int(f.readline())
+    pid += 1
+    f.seek(0)
+    f.write(str(pid))
     print(f"{pid}.test")
