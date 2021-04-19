@@ -8,5 +8,6 @@ tmp_path = dir_path.joinpath('last_pid.tmp')
 if not tmp_path.exists():
     template_path = dir_path.joinpath('last_pid.template')
     shutil.copyfile(template_path, tmp_path)
-with open(tmp_path, 'w+') as f:
-    pid = f.readline()
+with open(tmp_path, 'r+') as f:
+    pid = int(f.readline())
+    print(f"{pid}.test")
