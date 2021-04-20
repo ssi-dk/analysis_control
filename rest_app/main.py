@@ -20,7 +20,7 @@ import yaml
 from .models import (
     BifrostAnalyses,
     BifrostAnalysis,
-    InitBifrostReprocessRequest,
+    InitBifrostRequest,
     InitCgmlstRequest,
     InitNearestNeighborRequest,
     InitSnpRequest,
@@ -59,7 +59,7 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
 
 
 @app.post('/bifrost/reprocess', response_model=JobResponse)
-def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobResponse:
+def init_bifrost_reprocess(body: InitBifrostRequest = None) -> JobResponse:
     """
     Initiate reprocessing of a sequence
     """
