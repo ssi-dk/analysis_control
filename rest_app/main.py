@@ -42,6 +42,15 @@ mongo_client = MongoClient(BIFROST_DB_KEY)
 db = mongo_client.get_database()
 print(db.list_collection_names())
 
+
+@app.get('/bifrost/list_analyses', response_model=BifrostAnalyses)
+def get_bifrost_analysis_list() -> BifrostAnalyses:
+    """
+    Get the current list of Bifrost analyses that can be used for reprocessing
+    """
+    pass
+
+
 @app.post('/bifrost/reprocess', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostReprocessRequest = None) -> JobResponse:
     """
@@ -112,14 +121,6 @@ async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
 def init_snp(body: InitSnpRequest = None) -> JobResponse:
     """
     Initiate an SNP comparative analysis job
-    """
-    pass
-
-
-@app.get('/list/bifrost_analyses', response_model=BifrostAnalyses)
-def get_bifrost_analysis_list() -> BifrostAnalyses:
-    """
-    Get the current list of Bifrost analyses
     """
     pass
 
