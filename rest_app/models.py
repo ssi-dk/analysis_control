@@ -94,4 +94,4 @@ class BifrostAnalysis(BaseModel):
 
 
 class BifrostAnalyses(BaseModel):
-    analyses: Optional[List[BifrostAnalysis]] = None
+    analyses: Optional[List[BifrostAnalysis]] = list()

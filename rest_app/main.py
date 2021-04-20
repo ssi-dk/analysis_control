@@ -52,9 +52,8 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
     """
     Get the current list of Bifrost analyses that can be used for reprocessing
     """
-    response = BifrostAnalyses(analyses=list())
+    response = BifrostAnalyses()
     for conf in config['bifrost_components']:
-        print(f"Identifier: {conf['identifier']} Version: {conf['version']}")
         response.analyses.append(BifrostAnalysis(identifier=conf['identifier'], version=conf['version']))
     return response
 
