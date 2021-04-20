@@ -15,9 +15,11 @@ import json
 from fastapi import FastAPI
 import redis
 from pymongo import MongoClient
+import yaml
 
 from .models import (
     BifrostAnalyses,
+    BifrostAnalysis,
     InitBifrostReprocessRequest,
     InitCgmlstRequest,
     InitNearestNeighborRequest,
@@ -36,11 +38,13 @@ app = FastAPI(
 )
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
+
 BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY")
-print(f"Database: {BIFROST_DB_KEY}")
 mongo_client = MongoClient(BIFROST_DB_KEY)
 db = mongo_client.get_database()
-print(db.list_collection_names())
+
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=yaml.FullLoader)
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalyses)
@@ -48,7 +52,11 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
     """
     Get the current list of Bifrost analyses that can be used for reprocessing
     """
-    pass
+    response = BifrostAnalyses(analyses=list())
+    for conf in config['bifrost_components']:
+        print(f"Identifier: {conf['identifier']} Version: {conf['version']}")
+        response.analyses.append(BifrostAnalysis(identifier=conf['identifier'], version=conf['version']))
+    return response
 
 
 @app.post('/bifrost/reprocess', response_model=JobResponse)

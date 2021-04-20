@@ -89,7 +89,7 @@ class InitBifrostReprocessRequest(BaseModel):
 
 
 class BifrostAnalysis(BaseModel):
-    display_name: Optional[str] = None
+    identifier: Optional[str] = None
     version: Optional[str] = None
 
 
