@@ -122,14 +122,6 @@ async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
         end_time = datetime.now()
         processing_time = end_time - start_time
         r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
-        
-
-@app.post('/comparison/snp', response_model=JobResponse)
-def init_snp(body: InitSnpRequest = None) -> JobResponse:
-    """
-    Initiate an SNP comparative analysis job
-    """
-    pass
 
 
 @app.get('/result/status', response_model=JobResult)
