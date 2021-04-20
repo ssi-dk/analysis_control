@@ -58,7 +58,7 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
     return response
 
 
-@app.post('/bifrost/reprocess', response_model=JobResponse)
+@app.post('/bifrost/initiate_processing', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostRequest = None) -> JobResponse:
     """
     Initiate reprocessing of a sequence
