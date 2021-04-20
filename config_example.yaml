@@ -1,18 +1,29 @@
 bifrost_components:
     - identifier: bifrost_min_read_check
       version: 2.2.8
+      # target can be either sample or sample_collection
+      target: sample
 
     - identifier: bifrost_whats_my_species
       version: 2.2.11__171019
+      target: sample
 
     - identifier: bifrost_assemblatron
       version: 2.2.15
+      target: sample
 
     - identifier: bifrost_ssi_stamper
       version: 2.2.9
+      target: sample
     
     - identifier: bifrost_cge_mlst
       version: 2.2.4
+      target: sample
 
     - identifier: bifrost_seqsero
       version: 0.0.2
+      target: sample
+
+    - identifier: dtu_snp
+      version: 0.0.1
+      target: sample_collection
