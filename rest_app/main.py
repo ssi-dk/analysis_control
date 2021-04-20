@@ -23,7 +23,6 @@ from .models import (
     InitBifrostRequest,
     InitCgmlstRequest,
     InitNearestNeighborRequest,
-    InitSnpRequest,
     JobId,
     JobResponse,
     JobResult,

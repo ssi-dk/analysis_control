@@ -72,10 +72,6 @@ class InitNearestNeighborRequest(BaseModel):
     sequences: Optional[List[SequenceId]] = None
 
 
-class InitSnpRequest(BaseModel):
-    sequences: Optional[List[SequenceId]] = None
-
-
 class InitCgmlstRequest(BaseModel):
     sequences: Optional[List[SequenceId]] = None
     method: Optional[CgmlstMethod] = None
