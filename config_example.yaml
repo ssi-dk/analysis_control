@@ -1,4 +1,5 @@
-computerome_account:
+hpc_account:
+  group: not_the_real_one
   username: not_the_real_one
   password: not_the_real_one
 
