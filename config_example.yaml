@@ -1,7 +1,8 @@
 hpc_account:
-  group: not_the_real_one
   username: not_the_real_one
   password: not_the_real_one
+  group: not_the_real_one
+  reservation_name: not_the_real_one
 
 bifrost_components:
   bifrost_min_read_check:
