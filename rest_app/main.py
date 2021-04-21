@@ -17,6 +17,11 @@ import redis
 from pymongo import MongoClient
 import yaml
 
+
+class ComponentNotFoundError(Exception()):
+    pass
+
+
 from .models import (
     BifrostAnalyses,
     BifrostAnalysis,
@@ -57,12 +62,21 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
     return response
 
 
-@app.post('/bifrost/initiate_processing', response_model=JobResponse)
+@app.post('/bifrost/initiate_job', response_model=JobResponse)
 def init_bifrost_reprocess(body: InitBifrostRequest = None) -> JobResponse:
     """
     Initiate reprocessing of a sequence
     """
-    pass
+    print(config['bifrost_components'])
+    print(type(config['bifrost_components']))
+    # try:
+    bifrost_component = config['bifrost_components'][body.analysis]
+    # except:
+    #    raise ComponentNotFoundError(f"No Bifrost component found with identifier {body.analysis}.")
+    print(f"Analysis: {body.analysis}")
+    print(type(body.analysis))
+    job_response = JobResponse(job_id=123)
+    return job_response
 
 
 @app.post('/comparison/cgmlst', response_model=JobResponse)
