@@ -18,10 +18,6 @@ from pymongo import MongoClient
 import yaml
 
 
-class ComponentNotFoundError(Exception()):
-    pass
-
-
 from .models import (
     BifrostAnalyses,
     BifrostAnalysis,
@@ -67,15 +63,11 @@ def init_bifrost_reprocess(body: InitBifrostRequest = None) -> JobResponse:
     """
     Initiate reprocessing of a sequence
     """
-    print(config['bifrost_components'])
-    print(type(config['bifrost_components']))
-    # try:
-    bifrost_component = config['bifrost_components'][body.analysis]
-    # except:
-    #    raise ComponentNotFoundError(f"No Bifrost component found with identifier {body.analysis}.")
-    print(f"Analysis: {body.analysis}")
-    print(type(body.analysis))
-    job_response = JobResponse(job_id=123)
+    job_response = JobResponse()
+    bifrost_component = config['bifrost_components'].get(body.analysis)
+    if not bifrost_component:
+        job_response.accepted = False
+        job_response.error_msg = f"Could not find a Bifrost component with the identifier '{body.analysis}'."
     return job_response
 
 

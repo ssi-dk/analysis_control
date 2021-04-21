@@ -23,6 +23,8 @@ class JobId(BaseModel):
 
 class JobResponse(BaseModel):
     job_id: Optional[JobId] = None
+    accepted: Optional[bool] = True
+    error_msg: Optional[str] = None
 
 
 class JobStatus(Enum):
