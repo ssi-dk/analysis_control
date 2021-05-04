@@ -40,6 +40,17 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
 
 [[package]]
+name = "bifrostapi"
+version = "0.1.1"
+description = "Datahandling functions for bifrost dashboard"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+pymongo = "*"
+
+[[package]]
 name = "black"
 version = "20.8b1"
 description = "The uncompromising code formatter."
@@ -944,7 +955,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0d65c0331f9e4854b8e38f388422913ca8fb81eeabed0626469d7d15cb632d59"
+content-hash = "27271e6e5ab33bb784916ee668e5a23f267b8d993b90a205dec8125bcf0c9d19"
 
 [metadata.files]
 appdirs = [
@@ -962,6 +973,10 @@ atomicwrites = [
 attrs = [
     {file = "attrs-20.3.0-py2.py3-none-any.whl", hash = "sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6"},
     {file = "attrs-20.3.0.tar.gz", hash = "sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700"},
+]
+bifrostapi = [
+    {file = "bifrostapi-0.1.1-py3-none-any.whl", hash = "sha256:7a4aad64c3de9943c70dd4cde6dfbf7b2d3410f4f2e371d54e8b527551a0d0f1"},
+    {file = "bifrostapi-0.1.1.tar.gz", hash = "sha256:b0ec8e6f244f777e6c08bfe779aabff6a59f3a1a6856191fda7e509364a32c32"},
 ]
 black = [
     {file = "black-20.8b1.tar.gz", hash = "sha256:1c02557aa099101b9d21496f8a914e9ed2222ef70336404eeeac8edba836fbea"},

@@ -15,6 +15,7 @@ import json
 from fastapi import FastAPI
 import redis
 from pymongo import MongoClient
+import bifrostapi
 import yaml
 
 
@@ -30,6 +31,8 @@ from .models import (
     JobStatus,
 )
 
+from .hpc import create_and_execute_bifrost_run
+
 app = FastAPI(
     title='Analysis Control',
     version='0.6',
@@ -40,38 +43,54 @@ app = FastAPI(
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
 BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY")
-mongo_client = MongoClient(BIFROST_DB_KEY)
-db = mongo_client.get_database()
+mongo = MongoClient(BIFROST_DB_KEY)
+db = mongo.get_database()
+bifrostapi.add_URI(BIFROST_DB_KEY)
+
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 
-@app.get('/bifrost/list_analyses', response_model=BifrostAnalyses)
+@app.get('/list/bifrost_tools', response_model=BifrostAnalyses)
 def get_bifrost_analysis_list() -> BifrostAnalyses:
     """
-    Get the current list of Bifrost analyses that can be used for reprocessing
+    Get the current list of simple analyses.
     """
     response = BifrostAnalyses()
-    for conf in config['bifrost_components']:
-        response.analyses.append(BifrostAnalysis(identifier=conf['identifier'], version=conf['version']))
+    analysis_dict = config['bifrost_analyses']
+    for identifier in analysis_dict:
+        version = analysis_dict[identifier]['version']
+        response.analyses.append(BifrostAnalysis(identifier=identifier, version=version))
     return response
 
 
-@app.post('/bifrost/initiate_job', response_model=JobResponse)
-def init_bifrost_reprocess(body: InitBifrostRequest = None) -> JobResponse:
+@app.post('/initiate/bifrost_run', response_model=JobResponse)
+def init_simple_analysis(body: InitBifrostRequest = None) -> JobResponse:
     """
-    Initiate reprocessing of a sequence
+    Initiate an analysis with one or more samples.
     """
-    job_response = JobResponse()
-    bifrost_component = config['bifrost_components'].get(body.analysis)
-    if not bifrost_component:
+    # Find analysis and return with error if not found
+    analysis_from_config = config['bifrost_analyses'].get(body.analysis)
+    if analysis_from_config is None:
+        job_response = JobResponse()
         job_response.accepted = False
-        job_response.error_msg = f"Could not find a Bifrost component with the identifier '{body.analysis}'."
+        job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{sequence}'."
+        return job_response
+    analysis = BifrostAnalysis(identifier=body.analysis, version=analysis_from_config['version'])
+    
+    # Return an error if sequence list is empty
+    if len(body.sequences) == 0:
+        job_response = JobResponse()
+        job_response.accepted = False
+        job_response.error_msg = "No sequences - nothing to do."
+        return job_response
+    
+    job_response = create_and_execute_bifrost_run(analysis, body.sequences)
     return job_response
 
 
-@app.post('/comparison/cgmlst', response_model=JobResponse)
+@app.post('/initiate/cgmlst', response_model=JobResponse)
 async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
@@ -102,7 +121,7 @@ async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
         r.hmset(job_id, {'error': stderr, 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
-@app.post('/comparison/nearest_neighbors', response_model=JobResponse)
+@app.post('/initiate/nearest_neighbors', response_model=JobResponse)
 async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobResponse:
     """
     Initiate an Nearest Neighbors comparative analysis job

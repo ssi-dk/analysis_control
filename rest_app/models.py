@@ -82,8 +82,8 @@ class InitCgmlstRequest(BaseModel):
 
 
 class InitBifrostRequest(BaseModel):
-    sequences: Optional[List[SequenceId]] = None
     analysis: Optional[str] = None
+    sequences: Optional[List[SequenceId]] = None
 
 
 class BifrostAnalysis(BaseModel):
