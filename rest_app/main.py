@@ -42,7 +42,7 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY")
+BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY", "mongodb://localhost/test_bifrost")
 mongo = MongoClient(BIFROST_DB_KEY)
 db = mongo.get_database()
 bifrostapi.add_URI(BIFROST_DB_KEY)
