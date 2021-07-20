@@ -4,7 +4,7 @@ hpc_account:
   group: not_the_real_one
   reservation_name: not_the_real_one
 
-bifrost_components:
+bifrost_analyses:
   bifrost_min_read_check:
     version: 2.2.8
     type: classic  # This is not used for the moment, but we might need a new component type in the future.
