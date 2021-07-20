@@ -75,7 +75,7 @@ def init_simple_analysis(body: InitBifrostRequest = None) -> JobResponse:
     if analysis_from_config is None:
         job_response = JobResponse()
         job_response.accepted = False
-        job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{sequence}'."
+        job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{body.analysis}'."
         return job_response
     analysis = BifrostAnalysis(identifier=body.analysis, version=analysis_from_config['version'])
     
