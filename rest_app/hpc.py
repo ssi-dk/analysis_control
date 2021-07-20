@@ -1,7 +1,7 @@
 from typing import List
 import bifrostapi
 
-from .models import (JobResponse, BifrostAnalysis, SequenceId)
+from models import (JobResponse, BifrostAnalysis, SequenceId)
 
 def build_snakemake_command(sing_args, sing_prefix, component_path, sample_id, component_id, extra_arg=''):
     return_str = f'snakemake --use-singularity  --singularity-args \"{sing_args}\" '

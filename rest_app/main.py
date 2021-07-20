@@ -19,7 +19,7 @@ import bifrostapi
 import yaml
 
 
-from .models import (
+from models import (
     BifrostAnalyses,
     BifrostAnalysis,
     InitBifrostRequest,
@@ -31,7 +31,7 @@ from .models import (
     JobStatus,
 )
 
-from .hpc import create_and_execute_bifrost_run
+from hpc import create_and_execute_bifrost_run
 
 app = FastAPI(
     title='Analysis Control',
