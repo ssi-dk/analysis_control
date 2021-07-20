@@ -52,7 +52,7 @@ with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 
-@app.get('/list/bifrost_tools', response_model=BifrostAnalyses)
+@app.get('/list/bifrost_analyses', response_model=BifrostAnalyses)
 def get_bifrost_analysis_list() -> BifrostAnalyses:
     """
     Get the current list of simple analyses.
