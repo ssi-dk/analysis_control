@@ -68,25 +68,29 @@ def get_bifrost_analysis_list() -> BifrostAnalyses:
 @app.post('/initiate/bifrost_run', response_model=JobResponse)
 def init_simple_analysis(body: InitBifrostRequest = None) -> JobResponse:
     """
-    Initiate an analysis with one or more samples.
+    Analyze a sample with one or more analyses.
     """
-    # Find analysis and return with error if not found
-    analysis_from_config = config['bifrost_analyses'].get(body.analysis)
-    if analysis_from_config is None:
+    # Return an error if analysis list is empty
+    if hasattr(body, 'analyses') and (body.analyses is None or len(body.analyses) == 0):
         job_response = JobResponse()
         job_response.accepted = False
-        job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{body.analysis}'."
+        job_response.error_msg = "No analyses requested - nothing to do."
         return job_response
-    analysis = BifrostAnalysis(identifier=body.analysis, version=analysis_from_config['version'])
+
+    # Todo: Find sequence in MongoDB and return with error if not found
+
+    # For each analysis in InitBifrostRequest, make sure that analysis is present in config
+    analyses = list()
+    for analysis in body.analyses:
+        analysis_from_config = config['bifrost_analyses'].get(analysis)
+        if analysis_from_config is None:
+            job_response = JobResponse()
+            job_response.accepted = False
+            job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
+            return job_response
+        analyses.append(BifrostAnalysis(identifier=analysis, version=analysis_from_config['version']))
     
-    # Return an error if sequence list is empty
-    if len(body.sequences) == 0:
-        job_response = JobResponse()
-        job_response.accepted = False
-        job_response.error_msg = "No sequences - nothing to do."
-        return job_response
-    
-    job_response = create_and_execute_bifrost_run(analysis, body.sequences)
+    job_response = create_and_execute_bifrost_run(body.sequence, analyses)
     return job_response
 
 

@@ -9,7 +9,7 @@ def build_snakemake_command(sing_args, sing_prefix, component_path, sample_id, c
     + f"--cores 4 -s {component_path} "
     + f"--config sample_id={sample_id} component_id={component_id} {extra_arg}; "
 
-def create_and_execute_bifrost_run(analysis: BifrostAnalysis, sequence_ids: List[SequenceId]):
+def create_and_execute_bifrost_run(sequence_id: SequenceId, analyses: List[BifrostAnalysis]):
     """
     Create a Bifrost run with one sample and one or more analyses.
     """

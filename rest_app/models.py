@@ -92,4 +92,4 @@ class BifrostAnalyses(BaseModel):
 
 class InitBifrostRequest(BaseModel):
     sequence: SequenceId = None
-    analyses: List[BifrostAnalysis] = None
+    analyses: List[str] = None
