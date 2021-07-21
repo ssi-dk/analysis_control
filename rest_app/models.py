@@ -81,11 +81,6 @@ class InitCgmlstRequest(BaseModel):
     st: Optional[StCutoffMap] = None
 
 
-class InitBifrostRequest(BaseModel):
-    analysis: Optional[str] = None
-    sequences: Optional[List[SequenceId]] = None
-
-
 class BifrostAnalysis(BaseModel):
     identifier: Optional[str] = None
     version: Optional[str] = None
@@ -93,3 +88,8 @@ class BifrostAnalysis(BaseModel):
 
 class BifrostAnalyses(BaseModel):
     analyses: Optional[List[BifrostAnalysis]] = list()
+
+
+class InitBifrostRequest(BaseModel):
+    sequence: SequenceId = None
+    analyses: List[BifrostAnalysis] = None
