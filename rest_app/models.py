@@ -81,15 +81,16 @@ class InitCgmlstRequest(BaseModel):
     st: Optional[StCutoffMap] = None
 
 
-class BifrostAnalysis(BaseModel):
+class HPCAnalysis(BaseModel):
     identifier: Optional[str] = None
+    type: str = None
     version: Optional[str] = None
 
 
-class BifrostAnalyses(BaseModel):
-    analyses: Optional[List[BifrostAnalysis]] = list()
+class HPCAnalysisList(BaseModel):
+    analyses: Optional[List[HPCAnalysis]] = list()
 
 
-class InitBifrostRequest(BaseModel):
+class InitHPCRequest(BaseModel):
     sequence: SequenceId = None
     analyses: List[str] = None

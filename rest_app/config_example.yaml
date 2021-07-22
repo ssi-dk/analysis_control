@@ -4,27 +4,28 @@ hpc_account:
   group: not_the_real_one
   reservation_name: not_the_real_one
 
-bifrost_analyses:
+hpc_analyses:
   bifrost_min_read_check:
+    type: bifrost_component
     version: 2.2.8
-    type: classic  # This is not used for the moment, but we might need a new component type in the future.
 
   bifrost_whats_my_species:
+    type: bifrost_component
     version: 2.2.11__171019
-    type: classic
 
   bifrost_assemblatron:
+    type: bifrost_component
     version: 2.2.15
-    type: classic
 
   bifrost_ssi_stamper:
+    type: bifrost_component
     version: 2.2.9
-    type: classic
   
   bifrost_cge_mlst:
+    type: bifrost_component
     version: 2.2.4
-    type: classic
 
   bifrost_seqsero:
+    type: bifrost_component
     version: 0.0.2
-    type: classic
+

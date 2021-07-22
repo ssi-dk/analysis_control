@@ -20,9 +20,9 @@ import yaml
 
 
 from models import (
-    BifrostAnalyses,
-    BifrostAnalysis,
-    InitBifrostRequest,
+    HPCAnalysisList,
+    HPCAnalysis,
+    InitHPCRequest,
     InitCgmlstRequest,
     InitNearestNeighborRequest,
     JobId,
@@ -31,7 +31,7 @@ from models import (
     JobStatus,
 )
 
-from hpc import create_and_execute_bifrost_run
+from hpc import create_hpc_job
 
 app = FastAPI(
     title='Analysis Control',
@@ -52,23 +52,27 @@ with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 
-@app.get('/list/bifrost_analyses', response_model=BifrostAnalyses)
-def get_bifrost_analysis_list() -> BifrostAnalyses:
+@app.get('/list/hpc_analyses', response_model=HPCAnalysisList)
+def get_hpc_tools() -> HPCAnalysisList:
     """
-    Get the current list of simple analyses.
+    Get the list of configured HPC analyses from application config.
     """
-    response = BifrostAnalyses()
-    analysis_dict = config['bifrost_analyses']
+    response = HPCAnalysisList()
+    analysis_dict = config['hpc_analyses']
     for identifier in analysis_dict:
+        analysis_type = analysis_dict[identifier]['type']
         version = analysis_dict[identifier]['version']
-        response.analyses.append(BifrostAnalysis(identifier=identifier, version=version))
+        response.analyses.append(HPCAnalysis(
+            identifier=identifier,
+            type=analysis_type,
+            version=version))
     return response
 
 
-@app.post('/initiate/bifrost_run', response_model=JobResponse)
-def init_simple_analysis(body: InitBifrostRequest = None) -> JobResponse:
+@app.post('/initiate/hpc_job', response_model=JobResponse)
+def init_hpc_job(body: InitHPCRequest = None) -> JobResponse:
     """
-    Analyze a sample with one or more analyses.
+    Initiate an HPC job that analyzes a single sequence using one or more HPC analyses.
     """
     # Return an error if analysis list is empty
     if hasattr(body, 'analyses') and (body.analyses is None or len(body.analyses) == 0):
@@ -79,18 +83,18 @@ def init_simple_analysis(body: InitBifrostRequest = None) -> JobResponse:
 
     # Todo: Find sequence in MongoDB and return with error if not found
 
-    # For each analysis in InitBifrostRequest, make sure that analysis is present in config
+    # For each analysis in InitHPCRequest, make sure that analysis is present in config
     analyses = list()
     for analysis in body.analyses:
-        analysis_from_config = config['bifrost_analyses'].get(analysis)
+        analysis_from_config = config['hpc_analyses'].get(analysis)
         if analysis_from_config is None:
             job_response = JobResponse()
             job_response.accepted = False
-            job_response.error_msg = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
+            job_response.error_msg = f"Could not find an HPC analysis with the identifier '{analysis}'."
             return job_response
-        analyses.append(BifrostAnalysis(identifier=analysis, version=analysis_from_config['version']))
+        analyses.append(HPCAnalysis(identifier=analysis, version=analysis_from_config['version']))
     
-    job_response = create_and_execute_bifrost_run(body.sequence, analyses)
+    job_response = create_hpc_job(body.sequence, analyses)
     return job_response
 
 
