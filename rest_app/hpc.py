@@ -48,5 +48,5 @@ def create_hpc_job(sequence_id: SequenceId, analyses: List[HPCAnalysis]):
     # process_out, process_err = process.communicate()
 
     # Get job id from process out
-    job_response = JobResponse()
+    job_response = JobResponse(job_id='1')
     return job_response
