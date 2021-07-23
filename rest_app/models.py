@@ -13,7 +13,7 @@ class SequenceId(BaseModel):
 
 
 class JobResponse(BaseModel):
-    job_id: str
+    job_id: Optional[str] = None
     accepted: Optional[bool] = True
     error_msg: Optional[str] = None
 
