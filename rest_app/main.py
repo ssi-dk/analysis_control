@@ -64,8 +64,8 @@ def get_hpc_tools() -> HPCAnalysisList:
     return response
 
 
-@app.post('/hpc_/initiate_job', response_model=JobResponse)
-def init_hpc_job(body: InitHPCRequest = None) -> JobResponse:
+@app.post('/hpc/init_bifrost_run', response_model=JobResponse)
+def init_bifrost_run(body: InitHPCRequest = None) -> JobResponse:
     """
     Initiate an HPC job that analyzes a single sequence using one or more HPC analyses.
     """
@@ -93,7 +93,7 @@ def init_hpc_job(body: InitHPCRequest = None) -> JobResponse:
     return job_response
 
 
-@app.post('/comparative/cgmlst', response_model=JobResponse)
+@app.post('/comparative/init_cgmlst', response_model=JobResponse)
 async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
@@ -124,7 +124,7 @@ async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
         r.hmset(job_id, {'error': stderr, 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
-@app.post('/comparative/nearest_neighbors', response_model=JobResponse)
+@app.post('/comparative/init_nearest_neighbors', response_model=JobResponse)
 async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobResponse:
     """
     Initiate an Nearest Neighbors comparative analysis job
@@ -151,7 +151,7 @@ async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
         r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
-@app.get('/comparative/status', response_model=JobResult)
+@app.get('/comparative/get_job_status', response_model=JobResult)
 def get_job_status(job_id: str) -> JobResult:
     """
     Get the current status of a job
@@ -166,7 +166,7 @@ def get_job_status(job_id: str) -> JobResult:
     return job_result
 
 
-@app.post('/comparative/store', response_model=JobResult)
+@app.post('/comparative/store_result', response_model=JobResult)
 def post_job_store(job_id: Optional[str] = None) -> JobResult:
     """
     Store a comparative job result for later retrieval
