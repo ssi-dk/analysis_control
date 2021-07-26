@@ -16,8 +16,8 @@ import yaml
 
 
 from models import (
-    HPCAnalysisList,
-    HPCAnalysis,
+    BifrostAnalysisList,
+    BifrostAnalysis,
     InitHPCRequest,
     InitCgmlstRequest,
     InitNearestNeighborRequest,
@@ -47,17 +47,17 @@ with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 
-@app.get('/hpc/list_analyses', response_model=HPCAnalysisList)
-def list_hpc_analysis() -> HPCAnalysisList:
+@app.get('/hpc/list_analyses', response_model=BifrostAnalysisList)
+def list_hpc_analysis() -> BifrostAnalysisList:
     """
     Get the list of configured HPC analyses from application config.
     """
-    response = HPCAnalysisList()
+    response = BifrostAnalysisList()
     analysis_dict = config['hpc_analyses']
     for identifier in analysis_dict:
         analysis_type = analysis_dict[identifier]['type']
         version = analysis_dict[identifier]['version']
-        response.analyses.append(HPCAnalysis(
+        response.analyses.append(BifrostAnalysis(
             identifier=identifier,
             type=analysis_type,
             version=version))
@@ -87,7 +87,7 @@ def init_bifrost_run(body: InitHPCRequest = None) -> JobResponse:
             job_response.accepted = False
             job_response.error_msg = f"Could not find an HPC analysis with the identifier '{analysis}'."
             return job_response
-        analyses.append(HPCAnalysis(identifier=analysis, version=analysis_from_config['version']))
+        analyses.append(BifrostAnalysis(identifier=analysis, version=analysis_from_config['version']))
     
     job_response = create_hpc_job(body.sequence, analyses)
     return job_response
