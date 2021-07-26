@@ -48,7 +48,7 @@ with open('config.yaml') as file:
 
 
 @app.get('/hpc/list_analyses', response_model=HPCAnalysisList)
-def get_hpc_tools() -> HPCAnalysisList:
+def list_hpc_analysis() -> HPCAnalysisList:
     """
     Get the list of configured HPC analyses from application config.
     """
