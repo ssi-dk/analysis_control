@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import List, Optional
+from datetime import datetime
 
 from pydantic import BaseModel, Extra, Field
 
@@ -46,10 +47,9 @@ class Result(NewickTree, SequenceList):
 class Job(BaseModel):
     job_id: Optional[str] = None
     status: Optional[JobStatus] = JobStatus.Initializing
-    error: Optional[str] = Field(
-        None, description="Error message. Null if the status is not 'Failed'.\n"
-    )
+    error: Optional[str] = None
     result: Optional[Result] = None
+    finished_at: Optional[datetime] = None
     seconds: Optional[int] = None
 
 
