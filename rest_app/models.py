@@ -13,12 +13,6 @@ class Sequence(BaseModel):
     )
 
 
-class JobResponse(BaseModel):
-    job_id: Optional[str] = None
-    accepted: Optional[bool] = True
-    error_msg: Optional[str] = None
-
-
 class JobStatus(Enum):
     Initializing = 'Initializing'
     Rejected = 'Rejected'

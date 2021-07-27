@@ -21,7 +21,6 @@ from models import (
     BifrostRun,
     CgMLST,
     NearestNeighbors,
-    JobResponse,
     JobId,
     JobStatus,
 )
