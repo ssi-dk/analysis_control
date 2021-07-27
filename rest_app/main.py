@@ -18,15 +18,15 @@ import yaml
 from models import (
     BifrostAnalysisList,
     BifrostAnalysis,
-    InitHPCRequest,
-    InitCgmlstRequest,
-    InitNearestNeighborRequest,
+    BifrostRun,
+    CgMLST,
+    NearestNeighbors,
     JobResponse,
-    JobResult,
+    Job,
     JobStatus,
 )
 
-from hpc import create_hpc_job
+from hpc import create_bifrost_job
 
 app = FastAPI(
     title='Analysis Control',
@@ -64,37 +64,34 @@ def list_hpc_analysis() -> BifrostAnalysisList:
     return response
 
 
-@app.post('/hpc/init_bifrost_run', response_model=JobResponse)
-def init_bifrost_run(body: InitHPCRequest = None) -> JobResponse:
+@app.post('/hpc/init_bifrost_run', response_model=BifrostRun)
+def init_bifrost_run(run: BifrostRun = None) -> BifrostRun:
     """
-    Initiate an HPC job that analyzes a single sequence using one or more HPC analyses.
+    Initiate a Bifrost run with one or more sequences and one or more Bifrost analyses.
     """
     # Return an error if analysis list is empty
-    if hasattr(body, 'analyses') and (body.analyses is None or len(body.analyses) == 0):
-        job_response = JobResponse()
-        job_response.accepted = False
-        job_response.error_msg = "No analyses requested - nothing to do."
-        return job_response
+    if hasattr(run, 'analyses') and (run.analyses is None or len(run.analyses) == 0):
+        run.status = JobStatus.Rejected
+        return run
 
     # Todo: Find sequence in MongoDB and return with error if not found
 
-    # For each analysis in InitHPCRequest, make sure that analysis is present in config
-    analyses = list()
-    for analysis in body.analyses:
-        analysis_from_config = config['hpc_analyses'].get(analysis)
-        if analysis_from_config is None:
-            job_response = JobResponse()
-            job_response.accepted = False
-            job_response.error_msg = f"Could not find an HPC analysis with the identifier '{analysis}'."
-            return job_response
-        analyses.append(BifrostAnalysis(identifier=analysis, version=analysis_from_config['version']))
+    # For each analysis, make sure that analysis is present in config
+    for analysis in run.analyses:
+        try:
+            assert analysis in config['bifrost_analyses']
+            run.status = JobStatus.Accepted
+        except AssertionError:
+            run.status = JobStatus.Rejected
+            run.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
+            return run
     
-    job_response = create_hpc_job(body.sequence, analyses)
-    return job_response
+    response = create_bifrost_job(run)
+    return response
 
 
 @app.post('/comparative/init_cgmlst', response_model=JobResponse)
-async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
+async def init_cgmlst(body: CgMLST = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
     """
@@ -104,7 +101,7 @@ async def init_cgmlst(body: InitCgmlstRequest = None) -> JobResponse:
     job_response = JobResponse(job_id=job_id)
     return job_response
 
-async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
+async def do_cgmlst(job_id: str, body:CgMLST):
     start_time = datetime.now()
     app_root = pathlib.Path(os.path.realpath(__file__)).parent.parent
     # For now, we just use a test file
@@ -125,7 +122,7 @@ async def do_cgmlst(job_id: str, body:InitCgmlstRequest):
 
 
 @app.post('/comparative/init_nearest_neighbors', response_model=JobResponse)
-async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> JobResponse:
+async def init_nearest_neighbors(body: NearestNeighbors = None) -> JobResponse:
     """
     Initiate an Nearest Neighbors comparative analysis job
     """
@@ -136,7 +133,7 @@ async def init_nearest_neighbors(body: InitNearestNeighborRequest = None) -> Job
     return job_response
 
 
-async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
+async def do_nearest_neighbors(job_id: str, body:CgMLST):
     start_time = datetime.now()
     # For now, we just return the first 10 sample ID's
     try:
@@ -151,14 +148,14 @@ async def do_nearest_neighbors(job_id: str, body:InitCgmlstRequest):
         r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
-@app.get('/comparative/get_job_status', response_model=JobResult)
-def get_job_status(job_id: str) -> JobResult:
+@app.get('/comparative/get_job_status', response_model=Job)
+def get_job_status(job_id: str) -> Job:
     """
     Get the current status of a job
     """
     status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
     job_status = JobStatus(value=status)
-    job_result = JobResult()
+    job_result = Job()
     job_result.status = job_status
     job_result.result = result
     job_result.error = error
@@ -166,8 +163,8 @@ def get_job_status(job_id: str) -> JobResult:
     return job_result
 
 
-@app.post('/comparative/store_result', response_model=JobResult)
-def post_job_store(job_id: Optional[str] = None) -> JobResult:
+@app.post('/comparative/store_result', response_model=Job)
+def post_job_store(job_id: Optional[str] = None) -> Job:
     """
     Store a comparative job result for later retrieval
     """

@@ -1,7 +1,7 @@
 from typing import List
 import bifrostapi
 
-from models import (JobResponse, BifrostAnalysis, SequenceId)
+from models import BifrostRun, JobStatus
 
 def build_snakemake_command(sing_args, sing_prefix, component_path, sample_id, component_id, extra_arg=''):
     return_str = f'snakemake --use-singularity  --singularity-args \"{sing_args}\" '
@@ -9,7 +9,7 @@ def build_snakemake_command(sing_args, sing_prefix, component_path, sample_id, c
     + f"--cores 4 -s {component_path} "
     + f"--config sample_id={sample_id} component_id={component_id} {extra_arg}; "
 
-def create_hpc_job(sequence_id: SequenceId, analyses: List[BifrostAnalysis]):
+def create_bifrost_job(run: BifrostRun):
     """
     Create a Bifrost run with one sample and one or more analyses.
     """
@@ -48,5 +48,6 @@ def create_hpc_job(sequence_id: SequenceId, analyses: List[BifrostAnalysis]):
     # process_out, process_err = process.communicate()
 
     # Get job id from process out
-    job_response = JobResponse(job_id='1')
-    return job_response
+    run.job_id='1'
+    run.status = JobStatus.Queued
+    return run

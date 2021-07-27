@@ -6,7 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Extra, Field
 
 
-class SequenceId(BaseModel):
+class Sequence(BaseModel):
     __root__: str = Field(
         description="A unique identifier for a sequence. A sequence with this sequence id should exist in the Bifrost database."
     )
@@ -19,6 +19,9 @@ class JobResponse(BaseModel):
 
 
 class JobStatus(Enum):
+    Initializing = 'Initializing'
+    Rejected = 'Rejected'
+    Accepted = 'Accepted'
     Queued = 'Queued'
     Running = 'Running'
     Succeeded = 'Succeeded'
@@ -32,16 +35,17 @@ class NewickTree(BaseModel):
     )
 
 
-class SequenceIdList(BaseModel):
-    __root__: List[SequenceId] = Field(..., description="List of SequenceId's")
+class SequenceList(BaseModel):
+    __root__: List[Sequence] = Field(..., description="List of SequenceId's")
 
 
-class Result(NewickTree, SequenceIdList):
+class Result(NewickTree, SequenceList):
     pass
 
 
-class JobResult(BaseModel):
-    status: Optional[JobStatus] = None
+class Job(BaseModel):
+    job_id: Optional[str] = None
+    status: Optional[JobStatus] = JobStatus.Initializing
     error: Optional[str] = Field(
         None, description="Error message. Null if the status is not 'Failed'.\n"
     )
@@ -49,7 +53,7 @@ class JobResult(BaseModel):
     seconds: Optional[int] = None
 
 
-class CgmlstMethod(Enum):
+class CgMLSTMethod(Enum):
     single_linkage = 'single_linkage'
     complete_linkage = 'complete_linkage'
 
@@ -61,13 +65,13 @@ class StCutoffMap(BaseModel):
         extra = Extra.allow
 
 
-class InitNearestNeighborRequest(BaseModel):
-    sequences: Optional[List[SequenceId]] = None
+class NearestNeighbors(BaseModel):
+    sequences: Optional[List[Sequence]] = None
 
 
-class InitCgmlstRequest(BaseModel):
-    sequences: Optional[List[SequenceId]] = None
-    method: Optional[CgmlstMethod] = None
+class CgMLST(BaseModel):
+    sequences: Optional[List[Sequence]] = None
+    method: Optional[CgMLSTMethod] = None
     identified_species: Optional[str] = None
     st: Optional[StCutoffMap] = None
 
@@ -82,6 +86,6 @@ class BifrostAnalysisList(BaseModel):
     analyses: Optional[List[BifrostAnalysis]] = list()
 
 
-class InitHPCRequest(BaseModel):
-    sequence: SequenceId = None
+class BifrostRun(Job):
+    sequence: Sequence = None
     analyses: List[str] = None
