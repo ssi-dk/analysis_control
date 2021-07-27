@@ -30,12 +30,6 @@ class JobStatus(Enum):
     Stored = 'Stored'
 
 
-class NewickTree(BaseModel):
-    __root__: str = Field(
-        ..., description='Newick representation of a comparative analysis'
-    )
-
-
 class JobId(BaseModel):
     __root__: str = Field(
         ..., description='A job id that is valid for the specific type of job.'
@@ -74,6 +68,12 @@ class StCutoffMap(BaseModel):
 
     class Config:
         extra = Extra.allow
+
+
+class NewickTree(BaseModel):
+    __root__: str = Field(
+        ..., description='Newick representation of a comparative analysis'
+)
 
 
 class CgMLST(ComparativeAnalysis):
