@@ -157,8 +157,8 @@ async def init_cgmlst(body: CgMLST = None) -> CgMLST:
     job_id = str(uuid4()) + '.internal'
     r.hmset(job_id, {'status': 'Running'})
     asyncio.create_task(do_cgmlst(job_id, body))
-    job_response = JobResponse(job_id=job_id)
-    return job_response
+    response = CgMLST(job_id=job_id)
+    return response
 
 async def do_cgmlst(job_id: str, body:CgMLST):
     start_time = datetime.now()
