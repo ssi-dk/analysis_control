@@ -149,8 +149,8 @@ async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
     return response
 
 
-@app.post('/comparative/cgmlst/init', response_model=JobResponse)
-async def init_cgmlst(body: CgMLST = None) -> JobResponse:
+@app.post('/comparative/cgmlst/init', response_model=CgMLST)
+async def init_cgmlst(body: CgMLST = None) -> CgMLST:
     """
     Initiate a cgMLST comparative analysis job
     """
