@@ -50,18 +50,6 @@ class Job(BaseModel):
     seconds: Optional[int] = None
 
 
-class CgMLSTMethod(Enum):
-    single_linkage = 'single_linkage'
-    complete_linkage = 'complete_linkage'
-
-
-class StCutoffMap(BaseModel):
-    pass
-
-    class Config:
-        extra = Extra.allow
-
-
 class ComparativeAnalysis(Job):
     sequences: Optional[List[Sequence]] = None
 
@@ -74,6 +62,18 @@ class ComparativeAnalysis(Job):
 
 class NearestNeighbors(ComparativeAnalysis):
     result: Optional[List[Sequence]] = None
+
+
+class CgMLSTMethod(Enum):
+    single_linkage = 'single_linkage'
+    complete_linkage = 'complete_linkage'
+
+
+class StCutoffMap(BaseModel):
+    pass
+
+    class Config:
+        extra = Extra.allow
 
 
 class CgMLST(ComparativeAnalysis):
