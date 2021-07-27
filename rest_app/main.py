@@ -22,7 +22,7 @@ from models import (
     CgMLST,
     NearestNeighbors,
     JobResponse,
-    Job,
+    JobId,
     JobStatus,
 )
 
@@ -47,24 +47,22 @@ with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 
-@app.get('/hpc/list_analyses', response_model=BifrostAnalysisList)
+@app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
 def list_hpc_analysis() -> BifrostAnalysisList:
     """
-    Get the list of configured HPC analyses from application config.
+    Get the list of configured Bifrost analyses from application config.
     """
     response = BifrostAnalysisList()
-    analysis_dict = config['hpc_analyses']
+    analysis_dict = config['bifrost_analyses']
     for identifier in analysis_dict:
-        analysis_type = analysis_dict[identifier]['type']
         version = analysis_dict[identifier]['version']
         response.analyses.append(BifrostAnalysis(
             identifier=identifier,
-            type=analysis_type,
             version=version))
     return response
 
 
-@app.post('/hpc/init_bifrost_run', response_model=BifrostRun)
+@app.post('/bifrost/init', response_model=BifrostRun)
 def init_bifrost_run(run: BifrostRun = None) -> BifrostRun:
     """
     Initiate a Bifrost run with one or more sequences and one or more Bifrost analyses.
@@ -90,7 +88,68 @@ def init_bifrost_run(run: BifrostRun = None) -> BifrostRun:
     return response
 
 
-@app.post('/comparative/init_cgmlst', response_model=JobResponse)
+@app.get('/bifrost/status', response_model=BifrostRun)
+def status_bifrost(job_id: str) -> BifrostRun:
+    response = BifrostRun(identifier=job_id)
+    return response
+
+
+@app.post('/comparative/nearest_neighbors/init', response_model=NearestNeighbors)
+async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
+    """
+    Initiate a "nearest neighbors" comparative analysis job.
+    """
+    job.job_id = str(uuid4())
+    # r.hmset(job_id, {'status': 'Running'})
+    # asyncio.create_task(do_nearest_neighbors(job_id, body))
+    return job
+
+
+async def do_nearest_neighbors(job: NearestNeighbors):
+    start_time = datetime.now()
+    # For now, we just return the first 10 sample ID's
+    try:
+        sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
+        sample_ids = [ str(element['_id']) for element in sample_ids_cursor ]
+        end_time = datetime.now()
+        processing_time = end_time - start_time
+        r.hmset(job.job_id, {'result': json.dumps(sample_ids), 'status': 'Succeeded', 'seconds': processing_time.seconds})
+    except Exception as e:
+        end_time = datetime.now()
+        processing_time = end_time - start_time
+        r.hmset(job.job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
+
+
+@app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
+def status_nearest_neighbors(job_id: str) -> NearestNeighbors:
+    """
+    Get the current status of a "nearest neighbors" job.
+    """
+
+    """status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
+    job_status = JobStatus(value=status)
+    job_result = Job()
+    job_result.status = job_status
+    job_result.result = result
+    job_result.error = error
+    job_result.seconds = seconds """
+
+    response = NearestNeighbors(job_id=job_id)
+    return response
+
+
+@app.post('/comparative/nearest_neighbors/store', response_model=NearestNeighbors)
+async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
+    """
+    Store a "nearest neighbors" comparative analysis job.
+    """
+    # r.hmset(job_id, {'status': 'Running'})
+    # asyncio.create_task(do_nearest_neighbors(job_id, body))
+    response = NearestNeighbors(job_id=job_id.__root__)
+    return response
+
+
+@app.post('/comparative/cgmlst/init', response_model=JobResponse)
 async def init_cgmlst(body: CgMLST = None) -> JobResponse:
     """
     Initiate a cgMLST comparative analysis job
@@ -121,51 +180,32 @@ async def do_cgmlst(job_id: str, body:CgMLST):
         r.hmset(job_id, {'error': stderr, 'status': 'Failed', 'seconds': processing_time.seconds})
 
 
-@app.post('/comparative/init_nearest_neighbors', response_model=JobResponse)
-async def init_nearest_neighbors(body: NearestNeighbors = None) -> JobResponse:
+@app.get('/comparative/cgmlst/status', response_model=CgMLST)
+def status_cgmlst(job_id: str) -> CgMLST:
     """
-    Initiate an Nearest Neighbors comparative analysis job
+    Get the current status of a "nearest neighbors" job.
     """
-    job_id = str(uuid4()) + '.internal'
-    r.hmset(job_id, {'status': 'Running'})
-    asyncio.create_task(do_nearest_neighbors(job_id, body))
-    job_response = JobResponse(job_id=job_id)
-    return job_response
 
-
-async def do_nearest_neighbors(job_id: str, body:CgMLST):
-    start_time = datetime.now()
-    # For now, we just return the first 10 sample ID's
-    try:
-        sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
-        sample_ids = [ str(element['_id']) for element in sample_ids_cursor ]
-        end_time = datetime.now()
-        processing_time = end_time - start_time
-        r.hmset(job_id, {'result': json.dumps(sample_ids), 'status': 'Succeeded', 'seconds': processing_time.seconds})
-    except Exception as e:
-        end_time = datetime.now()
-        processing_time = end_time - start_time
-        r.hmset(job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
-
-
-@app.get('/comparative/get_job_status', response_model=Job)
-def get_job_status(job_id: str) -> Job:
-    """
-    Get the current status of a job
-    """
-    status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
+    """status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
     job_status = JobStatus(value=status)
     job_result = Job()
     job_result.status = job_status
     job_result.result = result
     job_result.error = error
-    job_result.seconds = seconds
-    return job_result
+    job_result.seconds = seconds """
+
+    response = CgMLST(job_id=job_id)
+    return response
 
 
-@app.post('/comparative/store_result', response_model=Job)
-def post_job_store(job_id: Optional[str] = None) -> Job:
+@app.post('/comparative/cgmlst/store', response_model=CgMLST)
+async def init_cgmlst(job_id: JobId) -> CgMLST:
     """
-    Store a comparative job result for later retrieval
+    Initiate a CgMLST comparative analysis job.
     """
-    pass
+    # r.hmset(job_id, {'status': 'Running'})
+    # asyncio.create_task(do_nearest_neighbors(job_id, body))
+    response = CgMLST(job_id=job_id.__root__)
+    return response
+
+
