@@ -89,3 +89,4 @@ class BifrostAnalysisList(BaseModel):
 class BifrostRun(Job):
     sequences: Optional[List[Sequence]]
     analyses: Optional[List[str]] = None
+    run_id: Optional[str] = None  # _id on run in MongoDB
