@@ -77,8 +77,7 @@ class CgMLST(BaseModel):
 
 
 class BifrostAnalysis(BaseModel):
-    identifier: Optional[str] = None
-    type: str = None
+    identifier: str
     version: Optional[str] = None
 
 
