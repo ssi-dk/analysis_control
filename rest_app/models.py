@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Optional
 from datetime import datetime
 
-from pydantic import BaseModel, Extra, Field, ValidationError, validator
+from pydantic import BaseModel, Extra, Field, validator
 
 
 class Sequence(BaseModel):
