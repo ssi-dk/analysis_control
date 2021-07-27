@@ -87,5 +87,5 @@ class BifrostAnalysisList(BaseModel):
 
 
 class BifrostRun(Job):
-    sequence: Sequence = None
+    sequences: List[Sequence]
     analyses: List[str] = None
