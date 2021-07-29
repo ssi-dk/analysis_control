@@ -99,24 +99,22 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     Initiate a "nearest neighbors" comparative analysis job.
     """
     job.job_id = str(uuid4())
-    # r.hmset(job_id, {'status': 'Running'})
-    # asyncio.create_task(do_nearest_neighbors(job_id, body))
+    job.status = JobStatus.Accepted
+    r.set(job.job_id, job.json())
+    asyncio.create_task(do_nearest_neighbors(job))
     return job
 
 
 async def do_nearest_neighbors(job: NearestNeighbors):
     start_time = datetime.now()
     # For now, we just return the first 10 sample ID's
-    try:
-        sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
-        sample_ids = [ str(element['_id']) for element in sample_ids_cursor ]
-        end_time = datetime.now()
-        processing_time = end_time - start_time
-        r.hmset(job.job_id, {'result': json.dumps(sample_ids), 'status': 'Succeeded', 'seconds': processing_time.seconds})
-    except Exception as e:
-        end_time = datetime.now()
-        processing_time = end_time - start_time
-        r.hmset(job.job_id, {'error': str(e), 'status': 'Failed', 'seconds': processing_time.seconds})
+    sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
+    job.result = [ str(element['_id']) for element in sample_ids_cursor ]
+    end_time = datetime.now()
+    processing_time = end_time - start_time
+    job.finished_at = end_time
+    job.seconds = processing_time
+    r.set(job.job_id, job.json())
 
 
 @app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
@@ -124,47 +122,40 @@ def status_nearest_neighbors(job_id: str) -> NearestNeighbors:
     """
     Get the current status of a "nearest neighbors" job.
     """
-
-    """status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
-    job_status = JobStatus(value=status)
-    job_result = Job()
-    job_result.status = job_status
-    job_result.result = result
-    job_result.error = error
-    job_result.seconds = seconds """
-
-    response = NearestNeighbors(job_id=job_id)
+    response = NearestNeighbors(**json.loads(r.get(job_id)))
     return response
 
 
 @app.post('/comparative/nearest_neighbors/store', response_model=NearestNeighbors)
 async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
+    """Store the list of sequence ids permanently (in MongoDB or Postgres) together with
+    meta information (owner, date, description, etc.). After this, the Redis entry should
+    be deleted.
     """
-    Store a "nearest neighbors" comparative analysis job.
-    """
-    # r.hmset(job_id, {'status': 'Running'})
-    # asyncio.create_task(do_nearest_neighbors(job_id, body))
-    response = NearestNeighbors(job_id=job_id.__root__)
+    job_id = job_id.__root__
+    response = NearestNeighbors(**json.loads(r.get(job_id)))
     return response
 
 
 @app.post('/comparative/cgmlst/init', response_model=CgMLST)
-async def init_cgmlst(body: CgMLST = None) -> CgMLST:
+async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
     Initiate a cgMLST comparative analysis job
     """
-    job_id = str(uuid4()) + '.internal'
-    r.hmset(job_id, {'status': 'Running'})
-    asyncio.create_task(do_cgmlst(job_id, body))
-    response = CgMLST(job_id=job_id)
-    return response
+    job.job_id = str(uuid4())
+    job.status = JobStatus.Accepted
+    r.set(job.job_id, job.json())
+    asyncio.create_task(do_cgmlst(job))
+    return job
 
-async def do_cgmlst(job_id: str, body:CgMLST):
+async def do_cgmlst(job:CgMLST):
+    job.status = JobStatus.Running
     start_time = datetime.now()
     app_root = pathlib.Path(os.path.realpath(__file__)).parent.parent
     # For now, we just use a test file
     profile_file = app_root.joinpath('test_data').joinpath('Achromobacter.tsv')
-    cmd = f"python commands/generate_newick.py {profile_file}"
+    script_path = pathlib.Path(__file__).parent.parent.joinpath('commands').joinpath('generate_newick.py')
+    cmd = f"python {script_path} {profile_file}"
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -174,9 +165,14 @@ async def do_cgmlst(job_id: str, body:CgMLST):
     end_time = datetime.now()
     processing_time = end_time - start_time
     if proc.returncode == 0:
-        r.hmset(job_id, {'result': stdout, 'status': 'Succeeded', 'seconds': processing_time.seconds})
+        job.status = JobStatus.Succeeded
+        job.result = stdout
+        job.finished_at = end_time
+        job.seconds = processing_time
     else:
-        r.hmset(job_id, {'error': stderr, 'status': 'Failed', 'seconds': processing_time.seconds})
+        job.status = JobStatus.Failed
+        job.error = stderr
+    r.set(job.job_id, job.json())
 
 
 @app.get('/comparative/cgmlst/status', response_model=CgMLST)
@@ -184,27 +180,18 @@ def status_cgmlst(job_id: str) -> CgMLST:
     """
     Get the current status of a "nearest neighbors" job.
     """
-
-    """status, result, error, seconds = r.hmget(job_id, ('status', 'result', 'error', 'seconds'))
-    job_status = JobStatus(value=status)
-    job_result = Job()
-    job_result.status = job_status
-    job_result.result = result
-    job_result.error = error
-    job_result.seconds = seconds """
-
-    response = CgMLST(job_id=job_id)
+    response = CgMLST(**json.loads(r.get(job_id)))
     return response
 
 
 @app.post('/comparative/cgmlst/store', response_model=CgMLST)
 async def init_cgmlst(job_id: JobId) -> CgMLST:
+    """Store the the phylogenetic tree permanently (in MongoDB or Postgres) together with
+    meta information (owner, date, description, etc.). After this, the Redis entry should
+    be deleted.
     """
-    Initiate a CgMLST comparative analysis job.
-    """
-    # r.hmset(job_id, {'status': 'Running'})
-    # asyncio.create_task(do_nearest_neighbors(job_id, body))
-    response = CgMLST(job_id=job_id.__root__)
+    job_id = job_id.__root__
+    response = CgMLST(**json.loads(r.get(job_id)))
     return response
 
 

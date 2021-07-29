@@ -49,7 +49,7 @@ class ComparativeAnalysis(Job):
 
 
 class NearestNeighbors(ComparativeAnalysis):
-    result: Optional[List[Sequence]] = None
+    result: Optional[List[str]] = None
 
 
 class CgMLSTMethod(Enum):
