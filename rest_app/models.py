@@ -80,7 +80,7 @@ class BifrostAnalysisList(BaseModel):
     analyses: Optional[List[BifrostAnalysis]] = list()
 
 
-class BifrostRun(Job):
+class BifrostJob(Job):
     sequences: Optional[List[str]] = None
     analyses: Optional[List[str]] = None
     run_id: Optional[str] = None  # _id on run in MongoDB

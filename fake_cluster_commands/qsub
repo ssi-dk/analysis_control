@@ -13,4 +13,4 @@ with open(tmp_path, 'r+') as f:
     pid += 1
     f.seek(0)
     f.write(str(pid))
-    print(f"{pid}.test")
+    print(pid)

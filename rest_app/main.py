@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 import pathlib
 import json
+import subprocess
 
 from fastapi import FastAPI
 import redis
@@ -18,14 +19,12 @@ import yaml
 from models import (
     BifrostAnalysisList,
     BifrostAnalysis,
-    BifrostRun,
+    BifrostJob,
     CgMLST,
     NearestNeighbors,
     JobId,
     JobStatus,
 )
-
-from hpc import create_bifrost_job
 
 app = FastAPI(
     title='Analysis Control',
@@ -61,36 +60,66 @@ def list_hpc_analysis() -> BifrostAnalysisList:
     return response
 
 
-@app.post('/bifrost/init', response_model=BifrostRun)
-def init_bifrost_run(run: BifrostRun = None) -> BifrostRun:
+@app.post('/bifrost/init', response_model=BifrostJob)
+def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     """
-    Initiate a Bifrost run with one or more sequences and one or more Bifrost analyses.
+    Initiate a Bifrost job with one or more sequences and one or more Bifrost analyses.
     """
-    # Return an error if analysis list is empty
-    if hasattr(run, 'analyses') and (run.analyses is None or len(run.analyses) == 0):
-        run.status = JobStatus.Rejected
-        return run
 
     # Todo: Find sequence in MongoDB and return with error if not found
 
     # For each analysis, make sure that analysis is present in config
-    for analysis in run.analyses:
+    for analysis in job.analyses:
         try:
             assert analysis in config['bifrost_analyses']
-            run.status = JobStatus.Accepted
+            job.status = JobStatus.Accepted
         except AssertionError:
-            run.status = JobStatus.Rejected
-            run.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
-            return run
+            job.status = JobStatus.Rejected
+            job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
+            return job
     
-    response = create_bifrost_job(run)
-    return response
+    command_prefix = config['hpc_command_prefix']
+    launch_script = config['bifrost_launch_script']
+    work_dir = config['bifrost_work_dir'] if config['production'] else \
+        pathlib.Path(__file__).parent.parent.joinpath('fake_cluster_commands')
+    command = f"{command_prefix} {launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
+    print(command)
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        env=os.environ,
+        cwd=work_dir
+    )
+    process_out, process_error = process.communicate()
+    if process_out:
+        job.job_id = (str(process_out, 'utf-8')).rstrip()
+        job.status = JobStatus.Queued
+    if process_error:
+        job.error = (str(process_error, 'utf-8')).rstrip()
+        job.status = JobStatus.Failed
+    return job
 
 
-@app.get('/bifrost/status', response_model=BifrostRun)
-def status_bifrost(job_id: str) -> BifrostRun:
-    response = BifrostRun(identifier=job_id)
-    return response
+@app.get('/bifrost/status', response_model=BifrostJob)
+def status_bifrost(job_id: str) -> BifrostJob:
+    job = BifrostJob(job_id=job_id)
+    process = subprocess.Popen(
+        f"checkjob {job_id}",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        env=os.environ,
+    )
+    process_out, process_error = process.communicate()
+    if process_out:
+        # Todo: set job.status after parsing process_out
+        job.status = JobStatus.Running
+    if process_error:
+        job.error = (str(process_error, 'utf-8')).rstrip()
+        job.status = JobStatus.Failed
+    return job
 
 
 @app.post('/comparative/nearest_neighbors/init', response_model=NearestNeighbors)

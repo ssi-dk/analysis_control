@@ -1,0 +1,35 @@
+#!/bin/sh
+echo '
+job 27105291
+ 
+AName: RUN1
+State: Running
+Creds:  user:user  group:user  account:user  class:batch
+WallTime:   27:07:10:56 of 40:00:00:00
+SubmitTime: Thu Aug 20 16:34:59
+  (Time Queued  Total: 00:00:36  Eligible: 00:00:36)
+ 
+StartTime: Thu Aug 20 16:35:35
+TemplateSets:  DEFAULT
+Total Requested Tasks: 28
+ 
+Req[0]  TaskCount: 28  Partition: pbs
+ 
+Allocated Nodes:
+[cldXXX-XXXX.cldXXX.vmc:28]
+ 
+ 
+SystemID:   Moab
+SystemJID:  27105291
+Notification Events: JobFail
+ 
+IWD:            /users/home/user/project/run1
+StartCount:     1
+Partition List: pbs
+Flags:          BACKFILL,RESTARTABLE
+Attr:           BACKFILL,checkpoint
+StartPriority:  0
+IterationJobRank: 0
+PE:             28.00
+Reservation '27105291' (   -27days -> 12:16:48:58  Duration: 40:00:00:00)
+'
