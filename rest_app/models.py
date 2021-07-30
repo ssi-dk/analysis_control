@@ -7,12 +7,6 @@ from datetime import datetime
 from pydantic import BaseModel, Extra, Field, validator
 
 
-class Sequence(BaseModel):
-    __root__: str = Field(
-        description="A unique identifier for a sequence. A sequence with this sequence id should exist in the Bifrost database."
-    )
-
-
 class JobStatus(Enum):
     Initializing = 'Initializing'
     Rejected = 'Rejected'
@@ -39,7 +33,7 @@ class Job(BaseModel):
 
 
 class ComparativeAnalysis(Job):
-    sequences: Optional[List[Sequence]] = None
+    sequences: Optional[List[str]] = None
 
     @validator('sequences')
     def at_least_two_sequences(cls, v):
@@ -87,6 +81,6 @@ class BifrostAnalysisList(BaseModel):
 
 
 class BifrostRun(Job):
-    sequences: Optional[List[Sequence]]
+    sequences: Optional[List[str]] = None
     analyses: Optional[List[str]] = None
     run_id: Optional[str] = None  # _id on run in MongoDB
