@@ -10,8 +10,11 @@ hpc_account:
 hpc_command_prefix:
   qsub -A fvst_ssi_dtu -W group_list=fvst_ssi_dtu -l nodes=1:ppn=40,advres=fvst_ssi_dtu_wiki_fodevarestyrelsen.16
 
+bifrost_use_hpc:
+  true
+
 bifrost_launch_script:
-  run_bifrost_on_individual_sequences.sh
+  launch_bifrost.sh
 
 bifrost_work_dir:
   /home/projects/ssi_dtu_fvst/whatever
