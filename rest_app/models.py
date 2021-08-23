@@ -34,12 +34,15 @@ class Job(BaseModel):
 
 class ComparativeAnalysis(Job):
     sequences: Optional[List[str]] = None
+    allele_hash_ids: Optional[List[str]] = None
 
     @validator('sequences')
     def at_least_two_sequences(cls, v):
         if v is not None and len(v) < 2:
             raise ValueError('Comparative analyses require at least two sequences.')
         return v
+
+    # Todo: add a validator that makes sure only sequences or allele_profiles is specified.
 
 
 class NearestNeighbors(ComparativeAnalysis):

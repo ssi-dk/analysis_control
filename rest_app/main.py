@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
 import asyncio
 from uuid import uuid4
 from datetime import datetime
@@ -8,12 +7,13 @@ import os
 import pathlib
 import json
 import subprocess
+import yaml
 
 from fastapi import FastAPI
 import redis
 from pymongo import MongoClient
 import bifrostapi
-import yaml
+from grapetree import module
 
 
 from models import (
@@ -178,12 +178,32 @@ async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     asyncio.create_task(do_cgmlst(job))
     return job
 
+def lookup_allele_profile(hash_id: str, identified_species: str):
+    key = f"allele_profile_{identified_species}:{hash_id}"
+    ret = list()
+    ret.append(hash_id)
+    ret.extend(r.lrange(key, 0, -1))
+    return ret
+
 async def do_cgmlst(job:CgMLST):
     job.status = JobStatus.Running
     start_time = datetime.now()
-    app_root = pathlib.Path(os.path.realpath(__file__)).parent.parent
-    # For now, we just use a test file
-    profile_file = app_root.joinpath('test_data').joinpath('Achromobacter.tsv')
+    # Currently we assume that input is given as allele hash ids, not as sequence names.
+    # Look up the actual allele profiles from hash ids.
+    allele_profiles = [ lookup_allele_profile(hash_id, job.identified_species) for hash_id in job.allele_hash_ids ]
+    # Turn each element in allele_profiles into a tab-separated string
+    allele_profiles_as_text_lines = list()
+    for allele_profile in allele_profiles:
+        line = "\t".join(allele_profile) + "\n"
+        allele_profiles_as_text_lines.append(line)
+    # The following lines are not beautiful - only for prototype...
+    temp_path = pathlib.Path(__file__).parent.parent.joinpath('tmp')
+    temp_path.mkdir(exist_ok=True)
+    profile_file = temp_path.joinpath('grapetree_input.tsv')
+    with open(profile_file, 'w') as profile_file_writer:
+        header_names = [ str(i) for i in range(1, 3001) ]
+        profile_file_writer.write("#Hash ID\t" + "\t".join(header_names) + "\n")
+        profile_file_writer.writelines(allele_profiles_as_text_lines)
     script_path = pathlib.Path(__file__).parent.parent.joinpath('commands').joinpath('generate_newick.py')
     cmd = f"python {script_path} {profile_file}"
     proc = await asyncio.create_subprocess_shell(
