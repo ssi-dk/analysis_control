@@ -25,5 +25,14 @@ for y in matrix.iterrows():
 
 print("OK, but there's a much better way to find a certain row in the dataframe.")
 print("Now, I want Pandas to show me the row where index is '2010S00330':")
-my_row = matrix.loc[ '2010S00330' , : ]
+my_row: pd.Series = matrix.loc[ '2010S00330' , : ]
 print(my_row)
+
+print("Now we'll run through the items in the row and see if they are over 2000.")
+for item in my_row.iteritems():
+    distance = item[1]
+    print(distance)
+    if distance > 2000:
+        print("Yes!")
+    else:
+        print("No.")
