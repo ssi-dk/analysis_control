@@ -124,6 +124,15 @@ def status_bifrost(job_id: str) -> BifrostJob:
     return job
 
 
+def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: int):
+    result = set()
+    for y in matrix.iterrows():
+        x = y[1]
+        print(x.values)
+        #if y[1] == input_sequence:
+        #    print("Yes!")
+    return result
+
 @app.post('/comparative/nearest_neighbors/from_dm', response_model=NearestNeighbors)
 async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
@@ -132,32 +141,11 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
     matrix = distance_matrices[job.species.replace(' ', '_')]
-
-    """
-    job.result = set()
-    for s in job.sequences, run the following as a function:
-
-    Find sequence on one axis in matrix
-    Iterate over target sequences t:
-    if t's distance to s > cutoff, continue
-    else add t to result
-    """
-
-    matrix_as_str = str(matrix)
-    job.result = matrix_as_str.split()
+    for input_sequence in job.sequences:
+        result_sequences = find_nearest_neighbors(input_sequence, matrix, job.cutoff)
+        for result_sequence in result_sequences:
+            job.result.add(result_sequence)
     return job
-
-
-"""
-async def do_nearest_neighbors(job: NearestNeighbors):
-    start_time = datetime.now()
-    # job.result = [ str(element['_id']) for element in sample_ids_cursor ]
-    end_time = datetime.now()
-    processing_time = end_time - start_time
-    job.finished_at = end_time
-    job.seconds = processing_time
-    r.set(job.job_id, job.json())
-"""
 
 
 @app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
