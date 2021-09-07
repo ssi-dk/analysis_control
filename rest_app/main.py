@@ -43,7 +43,7 @@ distance_matrices = dict()
 for k, v in config['distance_matrices'].items():
     print(f"Loading distance matrix for {k}...")
     print(f"File location: {v['location']}")
-    distance_matrices[k] = pd.read_csv(v['location'], sep='\t')
+    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0)
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
