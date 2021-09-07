@@ -33,6 +33,7 @@ class Job(BaseModel):
 
 
 class ComparativeAnalysis(Job):
+    species: str
     sequences: Optional[List[str]] = None
     allele_hash_ids: Optional[List[str]] = None
 
@@ -46,6 +47,7 @@ class ComparativeAnalysis(Job):
 
 
 class NearestNeighbors(ComparativeAnalysis):
+    cutoff: int
     result: Optional[List[str]] = None
 
 
