@@ -514,7 +514,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "3.8"
-content-hash = "538d00e49dc659adb1f6b9d525f5c94659d5aac30d3dee7428c85fe7ae36af25"
+content-hash = "8fd7c885c3096ffb457ba808b1e3dde51834f7626a2a9bc7d1528ca8f8f60ad6"
 
 [metadata.files]
 atomicwrites = [
