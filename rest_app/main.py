@@ -8,9 +8,11 @@ import pathlib
 import json
 import subprocess
 import yaml
+from datetime import datetime
 
 from fastapi import FastAPI
 import redis
+import numpy as np
 from grapetree import module
 
 
@@ -35,6 +37,13 @@ r = redis.Redis(charset="utf-8", decode_responses=True)
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
+
+print(f"Application starting at {datetime.now().time()}")
+distance_matrices = dict()
+for k, v in config['distance_matrices'].items():
+    print(f"Loading distance matrix for {k}...")
+    print(f"File location: {v['location']}")
+    # distance_matrices[k] = np.loadtxt(v['location'])
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)

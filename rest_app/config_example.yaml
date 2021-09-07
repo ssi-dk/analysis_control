@@ -44,3 +44,6 @@ bifrost_analyses:
     type: bifrost_component
     version: 0.0.2
 
+distance_matrices:
+  Salmonella_enterica:
+    location: /home/finn/species/Salmonella_enterica/output/cgmlst/distance_matrix.tsv
