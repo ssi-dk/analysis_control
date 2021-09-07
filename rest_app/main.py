@@ -12,7 +12,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 import redis
-import numpy as np
+import pandas as pd
 from grapetree import module
 
 
@@ -43,7 +43,7 @@ distance_matrices = dict()
 for k, v in config['distance_matrices'].items():
     print(f"Loading distance matrix for {k}...")
     print(f"File location: {v['location']}")
-    # distance_matrices[k] = np.loadtxt(v['location'])
+    distance_matrices[k] = pd.read_csv(v['location'], sep='\t')
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
