@@ -127,7 +127,7 @@ def status_bifrost(job_id: str) -> BifrostJob:
 @app.post('/comparative/nearest_neighbors/from_dm', response_model=NearestNeighbors)
 async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
-    Initiate a "nearest neighbors" comparative analysis job.
+    Nearest neighbors from distance matrix.
     """
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
