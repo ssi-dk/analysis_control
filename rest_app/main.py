@@ -131,11 +131,13 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
-    r.set(job.job_id, job.json())
-    asyncio.create_task(do_nearest_neighbors(job))
+    matrix = distance_matrices[job.species.replace(' ', '_')]
+    matrix_as_str = str(matrix)
+    job.result = matrix_as_str.split()
     return job
 
 
+"""
 async def do_nearest_neighbors(job: NearestNeighbors):
     start_time = datetime.now()
     # job.result = [ str(element['_id']) for element in sample_ids_cursor ]
@@ -144,6 +146,7 @@ async def do_nearest_neighbors(job: NearestNeighbors):
     job.finished_at = end_time
     job.seconds = processing_time
     r.set(job.job_id, job.json())
+"""
 
 
 @app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
