@@ -128,9 +128,9 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
     result = set()
     for y in matrix.iterrows():
         x = y[1]
-        print(x.values)
-        #if y[1] == input_sequence:
-        #    print("Yes!")
+        for v in x.iteritems():
+            print(v)
+        print()
     return result
 
 @app.post('/comparative/nearest_neighbors/from_dm', response_model=NearestNeighbors)
