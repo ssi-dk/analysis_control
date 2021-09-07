@@ -11,7 +11,6 @@ import yaml
 
 from fastapi import FastAPI
 import redis
-from pymongo import MongoClient
 import bifrostapi
 from grapetree import module
 
@@ -34,12 +33,6 @@ app = FastAPI(
 )
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
-
-BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY", "mongodb://localhost/bifrost_test")
-mongo = MongoClient(BIFROST_DB_KEY)
-db = mongo.get_database()
-bifrostapi.add_URI(BIFROST_DB_KEY)
-
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
@@ -137,9 +130,7 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
 
 async def do_nearest_neighbors(job: NearestNeighbors):
     start_time = datetime.now()
-    # For now, we just return the first 10 sample ID's
-    sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
-    job.result = [ str(element['_id']) for element in sample_ids_cursor ]
+    # job.result = [ str(element['_id']) for element in sample_ids_cursor ]
     end_time = datetime.now()
     processing_time = end_time - start_time
     job.finished_at = end_time
