@@ -11,7 +11,6 @@ uvicorn = {extras = ["standard"], version = "^0.13.4"}
 grapetree = "^2.2"
 pandas = "^1.2.3"
 redis = "^3.5.3"
-pymongo = "^3.11.3"
 PyYAML = "^5.4.1"
 requests = "^2.26.0"
 
