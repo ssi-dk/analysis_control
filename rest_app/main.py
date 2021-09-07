@@ -132,6 +132,17 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
     matrix = distance_matrices[job.species.replace(' ', '_')]
+
+    """
+    job.result = set()
+    for s in job.sequences, run the following as a function:
+
+    Find sequence on one axis in matrix
+    Iterate over target sequences t:
+    if t's distance to s > cutoff, continue
+    else add t to result
+    """
+
     matrix_as_str = str(matrix)
     job.result = matrix_as_str.split()
     return job
