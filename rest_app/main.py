@@ -43,7 +43,7 @@ distance_matrices = dict()
 for k, v in config['distance_matrices'].items():
     print(f"Loading distance matrix for {k}...")
     print(f"File location: {v['location']}")
-    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0)
+    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0, header=None)
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
@@ -127,6 +127,7 @@ def status_bifrost(job_id: str) -> BifrostJob:
 def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: int):
     result = set()
     row: pd.Series = matrix.loc[input_sequence , :]
+    print("Row:")
     print(row)
 
     print("Now we'll run through the items in the row and see if they are over 2000.")
