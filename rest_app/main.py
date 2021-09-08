@@ -131,6 +131,13 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
     # print(row)
     # Run through the columns in the row and see if they are less than or equal to cutoff.
     for item in row.iteritems():
+        print(f"Item within row: {item}")
+        index = item[0]
+        # What is the name of the sample in ROW <index> (assuming that rows and columns use the same order)?
+        series: pd.Series = matrix[index]
+        print("Now printing series.")
+        print(series)
+        print("End of printing series.")
         distance = item[1]
         if distance <= cutoff:
             # print(f"Adding item: {item}")
@@ -148,6 +155,8 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     matrix = distance_matrices[job.species.replace(' ', '_')]
     job.result = list()
     for input_sequence in job.sequences:
+        print()
+        print(f"***** Now looking at this input sequence: {input_sequence}.")
         result_sequences = find_nearest_neighbors(input_sequence, matrix, job.cutoff)
         for result_sequence in result_sequences:
             print(f"Result sequence found: {result_sequence}")
