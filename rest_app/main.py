@@ -129,15 +129,12 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
     row: pd.Series = matrix.loc[input_sequence , :]
     print("Row:")
     print(row)
-
-    print("Now we'll run through the items in the row and see if they are over 2000.")
+    # Run through the columns in the row and see if they are less than or equal to cutoff.
     for item in row.iteritems():
         distance = item[1]
-        print(distance)
-        if distance > 2000:
-            print("Yes!")
-        else:
-            print("No.")
+        if distance <= cutoff:
+            print(f"Adding item: {item}")
+            result.add(item)
     return result
 
 
