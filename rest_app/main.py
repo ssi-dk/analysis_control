@@ -135,13 +135,15 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
         idx = item[0]
         distance = item[1]
         # What is the name of the sample in ROW <index> (assuming that rows and columns use the same order)?
-        found_sequence_name: pd.Series = matrix.index[idx - 1]
-        print("Now printing found sequence name.")
-        print(found_sequence_name)
-        print("End of printing found sequence name.")
+        found_sequence: pd.Series = matrix.index[idx - 1]
+        print(f"Found sequence name: {found_sequence}")
         if distance <= cutoff:
-            # print(f"Adding item: {item}")
-            result.add(item)
+            print(f"Distance {distance} is smaller than cutoff {cutoff}.")
+            if found_sequence == input_sequence:
+                print(f"However, {found_sequence} is our input sequence, so it's not a match!")
+            else:
+                print(f"{found_sequence} is not {input_sequence}, so this is in fact a match!")
+                result.add(item)
     return result
 
 
