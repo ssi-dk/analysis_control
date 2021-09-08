@@ -132,13 +132,13 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
     # Run through the columns in the row and see if they are less than or equal to cutoff.
     for item in row.iteritems():
         print(f"Item within row: {item}")
-        index = item[0]
-        # What is the name of the sample in ROW <index> (assuming that rows and columns use the same order)?
-        series: pd.Series = matrix[index]
-        print("Now printing series.")
-        print(series)
-        print("End of printing series.")
+        idx = item[0]
         distance = item[1]
+        # What is the name of the sample in ROW <index> (assuming that rows and columns use the same order)?
+        found_sequence_name: pd.Series = matrix.index[idx - 1]
+        print("Now printing found sequence name.")
+        print(found_sequence_name)
+        print("End of printing found sequence name.")
         if distance <= cutoff:
             # print(f"Adding item: {item}")
             result.add(item)
