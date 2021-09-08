@@ -155,18 +155,15 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
     matrix = distance_matrices[job.species.replace(' ', '_')]
-    job.result = list()
+    result_seq_set = set()
     for input_sequence in job.sequences:
         print()
         print(f"***** Now looking at this input sequence: {input_sequence}.")
         result_sequences = find_nearest_neighbors(input_sequence, matrix, job.cutoff)
-        for result_sequence in result_sequences:
-            print(f"Result sequence found: {result_sequence}")
-            column_with_match = result_sequence[0]
-            print("Column with match:", column_with_match)
-            distance = result_sequence[1]
-            print("Distance:", distance)
-            # job.result.append(result_sequence)
+        for s in result_sequences:
+            # If it's already in the set it will not be added
+            result_seq_set.add(str(s))
+        job.result = list(result_seq_set)
     return job
 
 
