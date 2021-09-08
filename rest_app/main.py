@@ -126,11 +126,17 @@ def status_bifrost(job_id: str) -> BifrostJob:
 
 def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: int):
     result = set()
-    for y in matrix.iterrows():
-        x = y[1]
-        for v in x.iteritems():
-            print(v)
-        print()
+    my_row: pd.Series = matrix.loc[ '2010S00330' , : ]
+    print(my_row)
+
+    print("Now we'll run through the items in the row and see if they are over 2000.")
+    for item in my_row.iteritems():
+        distance = item[1]
+        print(distance)
+        if distance > 2000:
+            print("Yes!")
+        else:
+            print("No.")
     return result
 
 @app.post('/comparative/nearest_neighbors/from_dm', response_model=NearestNeighbors)
