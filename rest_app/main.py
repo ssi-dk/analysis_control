@@ -127,13 +127,13 @@ def status_bifrost(job_id: str) -> BifrostJob:
 def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: int):
     result = set()
     row: pd.Series = matrix.loc[input_sequence , :]
-    print("Row:")
-    print(row)
+    # print("Row:")
+    # print(row)
     # Run through the columns in the row and see if they are less than or equal to cutoff.
     for item in row.iteritems():
         distance = item[1]
         if distance <= cutoff:
-            print(f"Adding item: {item}")
+            # print(f"Adding item: {item}")
             result.add(item)
     return result
 
@@ -146,10 +146,16 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
     matrix = distance_matrices[job.species.replace(' ', '_')]
+    job.result = list()
     for input_sequence in job.sequences:
         result_sequences = find_nearest_neighbors(input_sequence, matrix, job.cutoff)
         for result_sequence in result_sequences:
-            job.result.add(result_sequence)
+            print(f"Result sequence found: {result_sequence}")
+            column_with_match = result_sequence[0]
+            print("Column with match:", column_with_match)
+            distance = result_sequence[1]
+            print("Distance:", distance)
+            # job.result.append(result_sequence)
     return job
 
 
