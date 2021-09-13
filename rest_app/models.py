@@ -33,19 +33,15 @@ class Job(BaseModel):
 
 
 class ComparativeAnalysis(Job):
+    species: str
     sequences: Optional[List[str]] = None
     allele_hash_ids: Optional[List[str]] = None
-
-    @validator('sequences')
-    def at_least_two_sequences(cls, v):
-        if v is not None and len(v) < 2:
-            raise ValueError('Comparative analyses require at least two sequences.')
-        return v
 
     # Todo: add a validator that makes sure only sequences or allele_profiles is specified.
 
 
 class NearestNeighbors(ComparativeAnalysis):
+    cutoff: int
     result: Optional[List[str]] = None
 
 
@@ -72,6 +68,12 @@ class CgMLST(ComparativeAnalysis):
     identified_species: Optional[str] = None
     st: Optional[StCutoffMap] = None
     result: Optional[NewickTree] = None
+
+    @validator('sequences')
+    def at_least_two_sequences(cls, v):
+        if v is not None and len(v) < 2:
+            raise ValueError('CgMLST analyses require at least two sequences.')
+        return v
 
 
 class BifrostAnalysis(BaseModel):

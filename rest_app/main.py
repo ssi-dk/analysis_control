@@ -8,11 +8,11 @@ import pathlib
 import json
 import subprocess
 import yaml
+from datetime import datetime
 
 from fastapi import FastAPI
 import redis
-from pymongo import MongoClient
-import bifrostapi
+import pandas as pd
 from grapetree import module
 
 
@@ -35,14 +35,15 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-BIFROST_DB_KEY = os.getenv("BIFROST_DB_KEY", "mongodb://localhost/bifrost_test")
-mongo = MongoClient(BIFROST_DB_KEY)
-db = mongo.get_database()
-bifrostapi.add_URI(BIFROST_DB_KEY)
-
-
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
+
+print(f"Application starting at {datetime.now().time()}")
+distance_matrices = dict()
+for k, v in config['distance_matrices'].items():
+    print(f"Loading distance matrix for {k}...")
+    print(f"File location: {v['location']}")
+    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0, header=None)
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
@@ -123,28 +124,47 @@ def status_bifrost(job_id: str) -> BifrostJob:
     return job
 
 
+def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: int):
+    result = set()
+    row: pd.Series = matrix.loc[input_sequence , :]
+    # print("Row:")
+    # print(row)
+    # Run through the columns in the row and see if they are less than or equal to cutoff.
+    for item in row.iteritems():
+        print(f"Item within row: {item}")
+        idx = item[0]
+        distance = item[1]
+        # What is the name of the sample in ROW <index> (assuming that rows and columns use the same order)?
+        found_sequence: pd.Series = matrix.index[idx - 1]
+        print(f"Found sequence name: {found_sequence}")
+        if distance <= cutoff:
+            print(f"Distance {distance} is smaller than cutoff {cutoff}.")
+            if found_sequence == input_sequence:
+                print(f"However, {found_sequence} is our input sequence, so it's not a match!")
+            else:
+                print(f"{found_sequence} is not {input_sequence}, so this is in fact a match!")
+                result.add(found_sequence)
+    return result
+
+
 @app.post('/comparative/nearest_neighbors/from_dm', response_model=NearestNeighbors)
 async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
-    Initiate a "nearest neighbors" comparative analysis job.
+    Nearest neighbors from distance matrix.
     """
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
-    r.set(job.job_id, job.json())
-    asyncio.create_task(do_nearest_neighbors(job))
+    matrix = distance_matrices[job.species.replace(' ', '_')]
+    result_seq_set = set()
+    for input_sequence in job.sequences:
+        print()
+        print(f"***** Now looking at this input sequence: {input_sequence}.")
+        result_sequences = find_nearest_neighbors(input_sequence, matrix, job.cutoff)
+        for s in result_sequences:
+            # If it's already in the set it will not be added
+            result_seq_set.add(str(s))
+        job.result = list(result_seq_set)
     return job
-
-
-async def do_nearest_neighbors(job: NearestNeighbors):
-    start_time = datetime.now()
-    # For now, we just return the first 10 sample ID's
-    sample_ids_cursor = db.samples.find({}, {"_id": 1}, limit=10)
-    job.result = [ str(element['_id']) for element in sample_ids_cursor ]
-    end_time = datetime.now()
-    processing_time = end_time - start_time
-    job.finished_at = end_time
-    job.seconds = processing_time
-    r.set(job.job_id, job.json())
 
 
 @app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
