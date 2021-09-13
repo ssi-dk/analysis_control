@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import pathlib
 import json
@@ -35,15 +35,20 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
+def load_distance_matrix(k: str, v: str):
+    before = datetime.now()
+    print(f"Start loading distance matrix for {k} at {before.time()}.")
+    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0, header=None)
+    after = datetime.now()
+    print(f"End loading distance matrix for {k} at {after.time()}.")
+    print(f"Loading time was {after - before}.")
+
+
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
-
-print(f"Application starting at {datetime.now().time()}")
 distance_matrices = dict()
 for k, v in config['distance_matrices'].items():
-    print(f"Loading distance matrix for {k}...")
-    print(f"File location: {v['location']}")
-    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0, header=None)
+    load_distance_matrix(k, v)
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
