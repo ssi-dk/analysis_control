@@ -143,7 +143,7 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
                 print(f"However, {found_sequence} is our input sequence, so it's not a match!")
             else:
                 print(f"{found_sequence} is not {input_sequence}, so this is in fact a match!")
-                result.add(item)
+                result.add(found_sequence)
     return result
 
 
