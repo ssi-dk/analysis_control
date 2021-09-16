@@ -220,7 +220,8 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
             i = prospect.index('\t')
             if prospect[:i] == wanted:
                 found.append(prospect)
-    return '\n'.join(found)
+    assert len(found) == len(sequences)
+    return '\n'.join(found) + '\n'
 
 
 @app.get('/comparative/cgmlst/status', response_model=CgMLST)
