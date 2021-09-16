@@ -35,20 +35,19 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-def load_distance_matrix(k: str, v: str):
-    before = datetime.now()
-    print(f"Start loading distance matrix for {k} at {before.time()}.")
-    distance_matrices[k] = pd.read_csv(v['location'], sep=' ', index_col=0, header=None)
-    after = datetime.now()
-    print(f"End loading distance matrix for {k} at {after.time()}.")
-    print(f"Loading time was {after - before}.")
+def load_distance_matrix(v: str):
+    return pd.read_csv(v, sep=' ', index_col=0, header=None)
 
+data = dict()
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
-distance_matrices = dict()
-for k, v in config['distance_matrices'].items():
-    load_distance_matrix(k, v)
+for k, v in config['species'].items():
+    chewie_workdir = pathlib.Path(v['chewie_workdir'])
+    distance_matrix_path = chewie_workdir.joinpath('output/cgmlst/distance_matrix.tsv')
+    now = datetime.now()
+    print(f"Start loading distance matrix for {k} at {now}")
+    data[k] = {'distance_matrix': load_distance_matrix(distance_matrix_path)}
 
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
@@ -159,7 +158,8 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
     job.job_id = str(uuid4())
     job.status = JobStatus.Accepted
-    matrix = distance_matrices[job.species.replace(' ', '_')]
+    species = job.species.replace(' ', '_')
+    matrix = data[species]['distance_matrix']
     result_seq_set = set()
     for input_sequence in job.sequences:
         print()
