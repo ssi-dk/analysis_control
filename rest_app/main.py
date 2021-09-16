@@ -203,10 +203,9 @@ async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
 @app.post('/comparative/cgmlst/init', response_model=CgMLST)
 async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
-    Initiate a cgMLST comparative analysis job
+    Get Newick for selected sequences
     """
-    # Todo: use job.species.replace(' ', '_')
-    all_allele_profiles: list = data['Salmonella_enterica']['allele_profiles']
+    all_allele_profiles: list = data[job.species.replace(' ', '_')]['allele_profiles']
     profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
     job.result = MSTrees.backend(profile=profiles_for_tree)
     return job
