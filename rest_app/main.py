@@ -38,18 +38,30 @@ r = redis.Redis(charset="utf-8", decode_responses=True)
 def load_distance_matrix(path):
     return pd.read_csv(path, sep=' ', index_col=0, header=None)
 
+def load_allele_profiles(path):
+    return pd.read_csv(path, sep='\t', index_col=0)
+
 data = dict()
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 for k, v in config['species'].items():
     chewie_workdir = pathlib.Path(v['chewie_workdir'])
+
     distance_matrix_path = chewie_workdir.joinpath('output/cgmlst/distance_matrix.tsv')
     start = datetime.now()
+    data[k] = dict()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k] = {'distance_matrix': load_distance_matrix(distance_matrix_path)}
+    data[k]['distance_matrix'] = load_distance_matrix(distance_matrix_path)
     finish = datetime.now()
     print(f"Finished loading distance matrix for {k} in {finish - start}")
+
+    allele_profile_path = chewie_workdir.joinpath('output/cgmlst/allele_profiles.tsv')
+    start = datetime.now()
+    print(f"Start loading allele profiles for {k} at {start}")
+    data[k]['allele_profiles'] = load_allele_profiles(allele_profile_path)
+    finish = datetime.now()
+    print(f"Finished loading allele profiles for {k} in {finish - start}")
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
 def list_hpc_analysis() -> BifrostAnalysisList:
