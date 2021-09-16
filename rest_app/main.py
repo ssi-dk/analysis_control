@@ -45,10 +45,11 @@ with open('config.yaml') as file:
 for k, v in config['species'].items():
     chewie_workdir = pathlib.Path(v['chewie_workdir'])
     distance_matrix_path = chewie_workdir.joinpath('output/cgmlst/distance_matrix.tsv')
-    now = datetime.now()
-    print(f"Start loading distance matrix for {k} at {now}")
+    start = datetime.now()
+    print(f"Start loading distance matrix for {k} at {start}")
     data[k] = {'distance_matrix': load_distance_matrix(distance_matrix_path)}
-
+    finish = datetime.now()
+    print(f"Finished loading distance matrix for {k} in {finish - start}")
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
 def list_hpc_analysis() -> BifrostAnalysisList:
