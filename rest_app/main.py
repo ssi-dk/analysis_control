@@ -220,45 +220,6 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
                 found.append(prospect)
     return '\n'.join(found)
 
-async def do_cgmlst(job:CgMLST):
-    job.status = JobStatus.Running
-    start_time = datetime.now()
-    # Currently we assume that input is given as allele hash ids, not as sequence names.
-    # Look up the actual allele profiles from hash ids.
-    allele_profiles = [ lookup_allele_profile(hash_id, job.identified_species) for hash_id in job.allele_hash_ids ]
-    # Turn each element in allele_profiles into a tab-separated string
-    allele_profiles_as_text_lines = list()
-    for allele_profile in allele_profiles:
-        line = "\t".join(allele_profile) + "\n"
-        allele_profiles_as_text_lines.append(line)
-    # The following lines are not beautiful - only for prototype...
-    temp_path = pathlib.Path(__file__).parent.parent.joinpath('tmp')
-    temp_path.mkdir(exist_ok=True)
-    profile_file = temp_path.joinpath('grapetree_input.tsv')
-    with open(profile_file, 'w') as profile_file_writer:
-        header_names = [ str(i) for i in range(1, 3001) ]
-        profile_file_writer.write("#Hash ID\t" + "\t".join(header_names) + "\n")
-        profile_file_writer.writelines(allele_profiles_as_text_lines)
-    script_path = pathlib.Path(__file__).parent.parent.joinpath('commands').joinpath('generate_newick.py')
-    cmd = f"python {script_path} {profile_file}"
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    end_time = datetime.now()
-    processing_time = end_time - start_time
-    if proc.returncode == 0:
-        job.status = JobStatus.Succeeded
-        job.result = stdout
-        job.finished_at = end_time
-        job.seconds = processing_time
-    else:
-        job.status = JobStatus.Failed
-        job.error = stderr
-    r.set(job.job_id, job.json())
-
 
 @app.get('/comparative/cgmlst/status', response_model=CgMLST)
 def status_cgmlst(job_id: str) -> CgMLST:
