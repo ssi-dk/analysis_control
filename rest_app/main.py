@@ -35,8 +35,8 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-def load_distance_matrix(v: str):
-    return pd.read_csv(v, sep=' ', index_col=0, header=None)
+def load_distance_matrix(path):
+    return pd.read_csv(path, sep=' ', index_col=0, header=None)
 
 data = dict()
 
