@@ -214,6 +214,8 @@ async def init_cgmlst(job: CgMLST = None) -> CgMLST:
 def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
     found = list()
     for prospect in all_allele_profiles:
+        if prospect.startswith('#'):  # header line
+            continue
         for wanted in sequences:
             i = prospect.index('\t')
             if prospect[:i] == wanted:
