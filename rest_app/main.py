@@ -35,13 +35,6 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-def load_distance_matrix(path):
-    return pd.read_csv(path, sep=' ', index_col=0, header=None)
-
-def load_allele_profiles(path):
-    with open(path) as f:
-        return f.read()
-
 data = dict()
 
 with open('config.yaml') as file:
@@ -53,14 +46,15 @@ for k, v in config['species'].items():
     start = datetime.now()
     data[k] = dict()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k]['distance_matrix'] = load_distance_matrix(distance_matrix_path)
+    data[k]['distance_matrix'] = pd.read_csv(distance_matrix_path, sep=' ', index_col=0, header=None)
     finish = datetime.now()
     print(f"Finished loading distance matrix for {k} in {finish - start}")
 
     allele_profile_path = chewie_workdir.joinpath('output/cgmlst/allele_profiles.tsv')
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
-    data[k]['allele_profiles'] = load_allele_profiles(allele_profile_path)
+    with open(allele_profile_path) as f:
+        data[k]['allele_profiles'] = f.read()
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
