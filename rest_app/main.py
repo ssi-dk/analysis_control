@@ -13,7 +13,7 @@ from datetime import datetime
 from fastapi import FastAPI
 import redis
 import pandas as pd
-from grapetree import module
+from grapetree.module import MSTrees
 
 
 from models import (
@@ -39,7 +39,8 @@ def load_distance_matrix(path):
     return pd.read_csv(path, sep=' ', index_col=0, header=None)
 
 def load_allele_profiles(path):
-    return pd.read_csv(path, sep='\t', index_col=0)
+    with open(path) as f:
+        return f.read()
 
 data = dict()
 
@@ -210,10 +211,9 @@ async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
     Initiate a cgMLST comparative analysis job
     """
-    job.job_id = str(uuid4())
-    job.status = JobStatus.Accepted
-    r.set(job.job_id, job.json())
-    asyncio.create_task(do_cgmlst(job))
+    # Todo: look up the actual allele profiles!
+    allele_profiles: str = data['Salmonella_enterica']['allele_profiles']
+    job.result = MSTrees.backend(profile=allele_profiles)
     return job
 
 def lookup_allele_profile(hash_id: str, identified_species: str):
