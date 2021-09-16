@@ -54,7 +54,7 @@ for k, v in config['species'].items():
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
     with open(allele_profile_path) as f:
-        data[k]['allele_profiles'] = f.read()
+        data[k]['allele_profiles'] = f.readlines()
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
@@ -205,17 +205,20 @@ async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
     Initiate a cgMLST comparative analysis job
     """
-    # Todo: look up the actual allele profiles!
-    allele_profiles: str = data['Salmonella_enterica']['allele_profiles']
-    job.result = MSTrees.backend(profile=allele_profiles)
+    # Todo: use job.species.replace(' ', '_')
+    all_allele_profiles: list = data['Salmonella_enterica']['allele_profiles']
+    profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
+    job.result = MSTrees.backend(profile=profiles_for_tree)
     return job
 
-def lookup_allele_profile(hash_id: str, identified_species: str):
-    key = f"allele_profile_{identified_species}:{hash_id}"
-    ret = list()
-    ret.append(hash_id)
-    ret.extend(r.lrange(key, 0, -1))
-    return ret
+def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
+    found = list()
+    for prospect in all_allele_profiles:
+        for wanted in sequences:
+            i = prospect.index('\t')
+            if prospect[:i] == wanted:
+                found.append(prospect)
+    return '\n'.join(found)
 
 async def do_cgmlst(job:CgMLST):
     job.status = JobStatus.Running
