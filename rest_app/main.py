@@ -13,7 +13,7 @@ from datetime import datetime
 from fastapi import FastAPI
 import redis
 import pandas as pd
-from grapetree import module
+from grapetree.module import MSTrees
 
 
 from models import (
@@ -35,12 +35,6 @@ app = FastAPI(
 
 r = redis.Redis(charset="utf-8", decode_responses=True)
 
-def load_distance_matrix(path):
-    return pd.read_csv(path, sep=' ', index_col=0, header=None)
-
-def load_allele_profiles(path):
-    return pd.read_csv(path, sep='\t', index_col=0)
-
 data = dict()
 
 with open('config.yaml') as file:
@@ -52,14 +46,15 @@ for k, v in config['species'].items():
     start = datetime.now()
     data[k] = dict()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k]['distance_matrix'] = load_distance_matrix(distance_matrix_path)
+    data[k]['distance_matrix'] = pd.read_csv(distance_matrix_path, sep=' ', index_col=0, header=None)
     finish = datetime.now()
     print(f"Finished loading distance matrix for {k} in {finish - start}")
 
     allele_profile_path = chewie_workdir.joinpath('output/cgmlst/allele_profiles.tsv')
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
-    data[k]['allele_profiles'] = load_allele_profiles(allele_profile_path)
+    with open(allele_profile_path) as f:
+        data[k]['allele_profiles'] = f.readlines()
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
@@ -205,81 +200,27 @@ async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
     return response
 
 
-@app.post('/comparative/cgmlst/init', response_model=CgMLST)
+@app.post('/comparative/cgmlst/newick', response_model=CgMLST)
 async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
-    Initiate a cgMLST comparative analysis job
+    Get Newick for selected sequences
     """
-    job.job_id = str(uuid4())
-    job.status = JobStatus.Accepted
-    r.set(job.job_id, job.json())
-    asyncio.create_task(do_cgmlst(job))
+    all_allele_profiles: list = data[job.species.replace(' ', '_')]['allele_profiles']
+    profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
+    job.result = MSTrees.backend(profile=profiles_for_tree)
     return job
 
-def lookup_allele_profile(hash_id: str, identified_species: str):
-    key = f"allele_profile_{identified_species}:{hash_id}"
-    ret = list()
-    ret.append(hash_id)
-    ret.extend(r.lrange(key, 0, -1))
-    return ret
 
-async def do_cgmlst(job:CgMLST):
-    job.status = JobStatus.Running
-    start_time = datetime.now()
-    # Currently we assume that input is given as allele hash ids, not as sequence names.
-    # Look up the actual allele profiles from hash ids.
-    allele_profiles = [ lookup_allele_profile(hash_id, job.identified_species) for hash_id in job.allele_hash_ids ]
-    # Turn each element in allele_profiles into a tab-separated string
-    allele_profiles_as_text_lines = list()
-    for allele_profile in allele_profiles:
-        line = "\t".join(allele_profile) + "\n"
-        allele_profiles_as_text_lines.append(line)
-    # The following lines are not beautiful - only for prototype...
-    temp_path = pathlib.Path(__file__).parent.parent.joinpath('tmp')
-    temp_path.mkdir(exist_ok=True)
-    profile_file = temp_path.joinpath('grapetree_input.tsv')
-    with open(profile_file, 'w') as profile_file_writer:
-        header_names = [ str(i) for i in range(1, 3001) ]
-        profile_file_writer.write("#Hash ID\t" + "\t".join(header_names) + "\n")
-        profile_file_writer.writelines(allele_profiles_as_text_lines)
-    script_path = pathlib.Path(__file__).parent.parent.joinpath('commands').joinpath('generate_newick.py')
-    cmd = f"python {script_path} {profile_file}"
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
-    end_time = datetime.now()
-    processing_time = end_time - start_time
-    if proc.returncode == 0:
-        job.status = JobStatus.Succeeded
-        job.result = stdout
-        job.finished_at = end_time
-        job.seconds = processing_time
-    else:
-        job.status = JobStatus.Failed
-        job.error = stderr
-    r.set(job.job_id, job.json())
+def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
+    found = list()
+    found.append(all_allele_profiles[0])  # Append header line to result
+    for prospect in all_allele_profiles:
+        for wanted in sequences:
+            i = prospect.index('\t')
+            if prospect[:i] == wanted:
+                found.append(prospect)
+    assert len(found) == len(sequences) + 1
+    return '\n'.join(found) + '\n'
 
-
-@app.get('/comparative/cgmlst/status', response_model=CgMLST)
-def status_cgmlst(job_id: str) -> CgMLST:
-    """
-    Get the current status of a "nearest neighbors" job.
-    """
-    response = CgMLST(**json.loads(r.get(job_id)))
-    return response
-
-
-@app.post('/comparative/cgmlst/store', response_model=CgMLST)
-async def init_cgmlst(job_id: JobId) -> CgMLST:
-    """Store the the phylogenetic tree permanently (in MongoDB or Postgres) together with
-    meta information (owner, date, description, etc.). After this, the Redis entry should
-    be deleted.
-    """
-    job_id = job_id.__root__
-    response = CgMLST(**json.loads(r.get(job_id)))
-    return response
 
 
