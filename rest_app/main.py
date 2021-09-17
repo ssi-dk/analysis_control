@@ -200,7 +200,7 @@ async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
     return response
 
 
-@app.post('/comparative/cgmlst/init', response_model=CgMLST)
+@app.post('/comparative/cgmlst/newick', response_model=CgMLST)
 async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     """
     Get Newick for selected sequences
@@ -209,6 +209,7 @@ async def init_cgmlst(job: CgMLST = None) -> CgMLST:
     profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
     job.result = MSTrees.backend(profile=profiles_for_tree)
     return job
+
 
 def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
     found = list()
@@ -221,24 +222,5 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
     assert len(found) == len(sequences) + 1
     return '\n'.join(found) + '\n'
 
-
-@app.get('/comparative/cgmlst/status', response_model=CgMLST)
-def status_cgmlst(job_id: str) -> CgMLST:
-    """
-    Get the current status of a "nearest neighbors" job.
-    """
-    response = CgMLST(**json.loads(r.get(job_id)))
-    return response
-
-
-@app.post('/comparative/cgmlst/store', response_model=CgMLST)
-async def init_cgmlst(job_id: JobId) -> CgMLST:
-    """Store the the phylogenetic tree permanently (in MongoDB or Postgres) together with
-    meta information (owner, date, description, etc.). After this, the Redis entry should
-    be deleted.
-    """
-    job_id = job_id.__root__
-    response = CgMLST(**json.loads(r.get(job_id)))
-    return response
 
 
