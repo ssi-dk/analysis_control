@@ -94,7 +94,7 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     command_prefix = config['hpc_command_prefix']
     launch_script = config['bifrost_launch_script']
     work_dir = config['bifrost_work_dir'] if config['production'] else \
-        pathlib.Path(__file__).parent.parent.joinpath('fake_cluster_commands')
+        pathlib.Path(__file__).parent.joinpath('fake_cluster_commands')
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
     print(command)
