@@ -46,4 +46,4 @@ bifrost_analyses:
 
 species:
   Salmonella_enterica:
-    chewie_workdir: /home/finn/species/Salmonella_enterica
+    cgmlst: /home/finn/species/Salmonella_enterica/output/cgmlst

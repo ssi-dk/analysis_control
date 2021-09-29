@@ -40,9 +40,9 @@ data = dict()
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 for k, v in config['species'].items():
-    chewie_workdir = pathlib.Path(v['chewie_workdir'])
+    cgmlst_dir = pathlib.Path(v['cgmlst'])
 
-    distance_matrix_path = chewie_workdir.joinpath('output/cgmlst/distance_matrix.tsv')
+    distance_matrix_path = cgmlst_dir.joinpath('distance_matrix.tsv')
     start = datetime.now()
     data[k] = dict()
     print(f"Start loading distance matrix for {k} at {start}")
@@ -50,7 +50,7 @@ for k, v in config['species'].items():
     finish = datetime.now()
     print(f"Finished loading distance matrix for {k} in {finish - start}")
 
-    allele_profile_path = chewie_workdir.joinpath('output/cgmlst/allele_profiles.tsv')
+    allele_profile_path = cgmlst_dir.joinpath('allele_profiles.tsv')
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
     with open(allele_profile_path) as f:
