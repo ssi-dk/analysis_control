@@ -11,7 +11,6 @@ import yaml
 from datetime import datetime
 
 from fastapi import FastAPI
-import redis
 import pandas as pd
 from grapetree.module import MSTrees
 
@@ -32,8 +31,6 @@ app = FastAPI(
     description='API for controlling analysis jobs on the SOFI platform',
     contact={'name': 'ssi.dk'},
 )
-
-r = redis.Redis(charset="utf-8", decode_responses=True)
 
 data = dict()
 
@@ -178,27 +175,6 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
             result_seq_set.add(str(s))
         job.result = list(result_seq_set)
     return job
-
-
-@app.get('/comparative/nearest_neighbors/status', response_model=NearestNeighbors)
-def status_nearest_neighbors(job_id: str) -> NearestNeighbors:
-    """
-    Get the current status of a "nearest neighbors" job.
-    """
-    response = NearestNeighbors(**json.loads(r.get(job_id)))
-    return response
-
-
-@app.post('/comparative/nearest_neighbors/store', response_model=NearestNeighbors)
-async def store_nearest_neighbors(job_id: JobId) -> NearestNeighbors:
-    """Store the list of sequence ids permanently (in MongoDB or Postgres) together with
-    meta information (owner, date, description, etc.). After this, the Redis entry should
-    be deleted.
-    """
-    job_id = job_id.__root__
-    response = NearestNeighbors(**json.loads(r.get(job_id)))
-    return response
-
 
 @app.post('/comparative/cgmlst/newick', response_model=CgMLST)
 async def init_cgmlst(job: CgMLST = None) -> CgMLST:
