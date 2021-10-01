@@ -177,8 +177,8 @@ async def generate_newick(job: Newick = None) -> Newick:
     """
     Generate Newick for selected sequences
     """
-    profiles_for_tree = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    job.result = MSTrees.backend(profile=profiles_for_tree)
+    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    job.result = MSTrees.backend(profile=profiles)
     return job
 
 
