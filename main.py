@@ -181,6 +181,14 @@ async def generate_newick(job: Newick = None) -> Newick:
     job.result = MSTrees.backend(profile=profiles)
     return job
 
+@app.post('/comparative/cgmlst/profile_diffs', response_model=Newick)
+async def generate_newick(job: Newick = None) -> Newick:
+    """
+    Show differences between requested allele profiles.
+    """
+    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    job.result = 'Hej'
+    return job
 
 def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
     found = list()
