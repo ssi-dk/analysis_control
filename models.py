@@ -63,7 +63,7 @@ class NewickTree(BaseModel):
 )
 
 
-class CgMLST(ComparativeAnalysis):
+class Newick(ComparativeAnalysis):
     method: Optional[CgMLSTMethod] = None
     identified_species: Optional[str] = None
     st: Optional[StCutoffMap] = None

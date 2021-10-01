@@ -19,7 +19,7 @@ from models import (
     BifrostAnalysisList,
     BifrostAnalysis,
     BifrostJob,
-    CgMLST,
+    Newick,
     NearestNeighbors,
     JobId,
     JobStatus,
@@ -172,8 +172,8 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
         job.result = list(result_seq_set)
     return job
 
-@app.post('/comparative/cgmlst/newick', response_model=CgMLST)
-async def init_cgmlst(job: CgMLST = None) -> CgMLST:
+@app.post('/comparative/cgmlst/newick', response_model=Newick)
+async def init_cgmlst(job: Newick = None) -> Newick:
     """
     Get Newick for selected sequences
     """
