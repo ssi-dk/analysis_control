@@ -76,8 +76,6 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     Initiate a Bifrost job with one or more sequences and one or more Bifrost analyses.
     """
 
-    # Todo: Find sequence in MongoDB and return with error if not found
-
     # For each analysis, make sure that analysis is present in config
     for analysis in job.analyses:
         try:
@@ -161,8 +159,6 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
     Nearest neighbors from distance matrix.
     """
-    job.job_id = str(uuid4())
-    job.status = JobStatus.Accepted
     species = job.species.replace(' ', '_')
     matrix = data[species]['distance_matrix']
     result_seq_set = set()
