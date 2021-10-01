@@ -173,9 +173,9 @@ async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     return job
 
 @app.post('/comparative/cgmlst/newick', response_model=Newick)
-async def init_cgmlst(job: Newick = None) -> Newick:
+async def generate_newick(job: Newick = None) -> Newick:
     """
-    Get Newick for selected sequences
+    Generate Newick for selected sequences
     """
     all_allele_profiles: list = data[job.species.replace(' ', '_')]['allele_profiles']
     profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
