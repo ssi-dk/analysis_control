@@ -2,3 +2,4 @@
 __pycache__
 config.yaml
 tests/*.tsv
+fake_cluster_commands/last_pid.tmp
