@@ -177,7 +177,10 @@ async def generate_newick(job: Newick = None) -> Newick:
     """
     Generate Newick for selected sequences
     """
-    all_allele_profiles: list = data[job.species.replace(' ', '_')]['allele_profiles']
+    # all_allele_profiles bliver en meget stor liste, som genereres for hvert request.
+    # Bedre at generere den én gang for alle ved programopstart.
+    species = job.species.replace(' ', '_')  # Todo: maybe better to specify that _ should always be used
+    all_allele_profiles: list = data[species]['allele_profiles']
     profiles_for_tree = lookup_allele_profiles(job.sequences, all_allele_profiles)
     job.result = MSTrees.backend(profile=profiles_for_tree)
     return job
