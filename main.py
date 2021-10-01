@@ -155,7 +155,7 @@ def find_nearest_neighbors(input_sequence: str, matrix: pd.DataFrame, cutoff: in
 
 
 @app.post('/comparative/cgmlst/nearest_neighbors', response_model=NearestNeighbors)
-async def init_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
+async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     """
     Nearest neighbors from distance matrix.
     """
