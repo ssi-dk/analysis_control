@@ -12,7 +12,8 @@ from datetime import datetime
 
 from fastapi import FastAPI
 import pandas as pd
-from grapetree.module import MSTrees
+
+import MSTrees
 
 
 from models import (
