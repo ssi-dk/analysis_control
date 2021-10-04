@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "rest_app"
+name = "analysis_control"
 version = "0.1.0"
 description = ""
 authors = ["Finn Gruwier Larsen <figl@ssi.dk>"]
