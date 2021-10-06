@@ -550,6 +550,8 @@ class methods(object) :
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
         return tree
+    
+"""     # 'edge' is not defined!
     @staticmethod
     def ninja(names, profiles, embeded, handle_missing='pair_delete', **params) :
         dist = distance_matrix.get_distance('symmetric', profiles, handle_missing)
@@ -577,7 +579,7 @@ class methods(object) :
 
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
-        return tree
+        return tree """
 
 def nonredundant(names, profiles) :
     encoded_profile = np.array([np.unique(p, return_inverse=True)[1]+1 for p in profiles.T]).T
