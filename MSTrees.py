@@ -5,8 +5,9 @@ from glob import glob
 from ete3 import Tree
 from subprocess import Popen, PIPE
 import sys, os, tempfile, platform, re, tempfile, psutil
+import sysconfig
 
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+base_dir = os.path.join(sysconfig.get_paths()["purelib"], "grapetree")
 
 params = dict(method='MSTreeV2', # MSTree , NJ
               matrix_type='symmetric',
