@@ -282,54 +282,54 @@ class methods(object) :
             link = link.T[np.lexsort(link)]
             return link[np.unique(link.T[1], return_index=True)[1]].astype(int)
 
-        try:
-            wdist = np.round(dist, 0) + weight.reshape([weight.size, -1])
-            np.fill_diagonal(wdist, 0.0)
-            del dist
+        # try:
+        wdist = np.round(dist, 0) + weight.reshape([weight.size, -1])
+        np.fill_diagonal(wdist, 0.0)
+        del dist
 
-            presence = np.arange(weight.shape[0])
-            shortcuts = get_shortcut(wdist, weight)
-            for (s, t, d) in shortcuts :
-                wdist[s, wdist[s] > wdist[t]] = wdist[t, wdist[s] > wdist[t]]
-            presence[shortcuts.T[1]] = -1
-            wdist = wdist.T[presence >= 0].T[presence >= 0]
-            presence = presence[presence >=0]
+        presence = np.arange(weight.shape[0])
+        shortcuts = get_shortcut(wdist, weight)
+        for (s, t, d) in shortcuts :
+            wdist[s, wdist[s] > wdist[t]] = wdist[t, wdist[s] > wdist[t]]
+        presence[shortcuts.T[1]] = -1
+        wdist = wdist.T[presence >= 0].T[presence >= 0]
+        presence = presence[presence >=0]
 
-            wdist_file = params['tempfix'] + '.wdist.list'
-            with open(wdist_file, 'w') as fout :
-                for d in wdist :
-                    fout.write('{0}\n'.format('\t'.join([str(dd) for dd in (d+1.)])))
-            del wdist, d
-            mstree = Popen([params['edmonds_' + platform.system()], wdist_file], stdout=PIPE).communicate()[0]
-            os.unlink(wdist_file)
-            if isinstance(mstree, bytes) :
-                mstree = mstree.decode('utf8')
-            mstree = np.array([ br.strip().split() for br in mstree.strip().split('\n')], dtype=float).astype(int)
-            assert mstree.size > 0
-            mstree.T[2] -= 1
-            mstree.T[:2] = presence[mstree.T[:2]]
-            return mstree.tolist() + shortcuts.tolist()
-        except :
-            try :
-                os.unlink(wdist_file)
-            except :
-                pass
-            dist = np.load(params['dist_file'])
-            wdist = np.round(dist, 0) + weight.reshape([weight.size, -1])
-            np.fill_diagonal(wdist, 0.0)
-            del dist
+        wdist_file = params['tempfix'] + '.wdist.list'
+        with open(wdist_file, 'w') as fout :
+            for d in wdist :
+                fout.write('{0}\n'.format('\t'.join([str(dd) for dd in (d+1.)])))
+        del wdist, d
+        mstree = Popen([params['edmonds_' + platform.system()], wdist_file], stdout=PIPE).communicate()[0]
+        os.unlink(wdist_file)
+        if isinstance(mstree, bytes) :
+            mstree = mstree.decode('utf8')
+        mstree = np.array([ br.strip().split() for br in mstree.strip().split('\n')], dtype=float).astype(int)
+        assert mstree.size > 0
+        mstree.T[2] -= 1
+        mstree.T[:2] = presence[mstree.T[:2]]
+        return mstree.tolist() + shortcuts.tolist()
+        # except :
+        #     try :
+        #         os.unlink(wdist_file)
+        #     except :
+        #         pass
+        #     dist = np.load(params['dist_file'])
+        #     wdist = np.round(dist, 0) + weight.reshape([weight.size, -1])
+        #     np.fill_diagonal(wdist, 0.0)
+        #     del dist
 
-            presence = np.arange(weight.shape[0])
-            shortcuts = get_shortcut(wdist, weight)
-            for (s, t, d) in shortcuts :
-                wdist[s, wdist[s] > wdist[t]] = wdist[t, wdist[s] > wdist[t]]
-                presence[t] = -1
-            wdist = wdist.T[presence >= 0].T[presence >= 0]
-            presence = presence[presence >=0]
+        #     presence = np.arange(weight.shape[0])
+        #     shortcuts = get_shortcut(wdist, weight)
+        #     for (s, t, d) in shortcuts :
+        #         wdist[s, wdist[s] > wdist[t]] = wdist[t, wdist[s] > wdist[t]]
+        #         presence[t] = -1
+        #     wdist = wdist.T[presence >= 0].T[presence >= 0]
+        #     presence = presence[presence >=0]
 
-            g = nx.DiGraph(wdist)
-            ms = nx.minimum_spanning_arborescence(g)
-            return [[presence[d[0]], presence[d[1]], int(d[2]['weight'])] for d in ms.edges(data=True)] + shortcuts.tolist()
+        #     g = nx.DiGraph(wdist)
+        #     ms = nx.minimum_spanning_arborescence(g)
+        #     return [[presence[d[0]], presence[d[1]], int(d[2]['weight'])] for d in ms.edges(data=True)] + shortcuts.tolist()
 
     @staticmethod
     def _branch_recraft(branches, dist, weights, n_loci) :
