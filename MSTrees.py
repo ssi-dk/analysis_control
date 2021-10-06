@@ -750,15 +750,14 @@ def backend(**args) :
                     os.unlink(fname)
                 except :
                     pass
-            result = tre.write(format=1).replace("'", "")
+            return tre.write(format=1).replace("'", "")
         else :
             for fname in (params['prof_file'], params['dist_file']) :
                 try:
                     os.unlink(fname)
                 except :
                     pass
-            result = '\n'.join(tre)
-    return result
+            return '\n'.join(tre)
 
 def estimate_Consumption(platform, method, matrix, n_proc, n_loci, n_profile) :
     if method in ('MSTree', 'RapidNJ') :
