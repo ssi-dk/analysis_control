@@ -107,10 +107,10 @@ class distance_matrix(object) :
             subfiles = [parallel_distance([func, params['prof_file'], params['dist_subfile'], handle_missing, [0, n_profile]])]
             res = np.load(subfiles[0])
         for subfile in subfiles :
-            try :
-                os.unlink(subfile)
-            except :
-                pass
+            # try :
+            os.unlink(subfile)
+            # except :
+            #     pass
         np.save(params['dist_file'], res)
         if func == 'symmetric' :
             res[res.T > res] = res.T[res.T > res]
@@ -261,15 +261,15 @@ class methods(object) :
         dist = np.round(dist, 0) + weight.reshape([weight.size, -1])
         np.fill_diagonal(dist, 0.0)
         dist[dist > dist.T] = dist.T[dist > dist.T]
-        try:
-            g = nx.Graph(dist)
-            ms = nx.minimum_spanning_tree(g)
-            dist = np.round(dist, 0)
-            return [[d[0], d[1], int(d[2]['weight'])] for d in ms.edges(data=True)]
-        except :
-            res = minimum_spanning_tree(dist)
-            dist = np.round(dist, 0)
-            return res
+        # try:
+        g = nx.Graph(dist)
+        ms = nx.minimum_spanning_tree(g)
+        dist = np.round(dist, 0)
+        return [[d[0], d[1], int(d[2]['weight'])] for d in ms.edges(data=True)]
+        # except :
+        res = minimum_spanning_tree(dist)
+        dist = np.round(dist, 0)
+        return res
 
     @staticmethod
     def _asymmetric(dist, weight, **params) :
@@ -502,22 +502,22 @@ class methods(object) :
             for n, d in enumerate(dist) :
                 fout.write( '{0!s:10} {1}\n'.format(n, ' '.join(['{:.6f}'.format(dd) for dd in d])) )
         del dist, d
-        try :
-            Popen([params['NJ_{0}'.format(platform.system())], '-i', dist_file, '-m', 'B', '-n', 'B'], stdout=PIPE).communicate()
-        except Exception as e :
-            if platform.system() == 'Linux' :
-                Popen([params['NJ_Linux32'], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
-            else :
-                raise e
+        # try :
+        Popen([params['NJ_{0}'.format(platform.system())], '-i', dist_file, '-m', 'B', '-n', 'B'], stdout=PIPE).communicate()
+        # except Exception as e :
+        #     if platform.system() == 'Linux' :
+        #         Popen([params['NJ_Linux32'], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
+        #     else :
+        #         raise e
         tree = Tree(dist_file + '_fastme_tree.nwk')
         for fname in glob(dist_file + '*') :
             os.unlink(fname)
 
-        try:
-            tree.set_outgroup(tree.get_midpoint_outgroup())
-            tree.unroot()
-        except :
-            pass
+        # try:
+        tree.set_outgroup(tree.get_midpoint_outgroup())
+        tree.unroot()
+        # except :
+        #     pass
 
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
@@ -532,22 +532,22 @@ class methods(object) :
             for n, d in enumerate(dist) :
                 fout.write( '{0!s:10} {1}\n'.format(n, ' '.join(['{:.6f}'.format(dd) for dd in d])) )
         del dist, d
-        try :
-            Popen([params['NJ_{0}'.format(platform.system())], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
-        except Exception as e :
-            if platform.system() == 'Linux' :
-                Popen([params['NJ_Linux32'], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
-            else :
-                raise e
+        # try :
+        Popen([params['NJ_{0}'.format(platform.system())], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
+        # except Exception as e :
+        #     if platform.system() == 'Linux' :
+        #         Popen([params['NJ_Linux32'], '-i', dist_file, '-m', 'N'], stdout=PIPE).communicate()
+        #     else :
+        #         raise e
         tree = Tree(dist_file + '_fastme_tree.nwk')
         for fname in glob(dist_file + '*') :
             os.unlink(fname)
 
-        try:
-            tree.set_outgroup(tree.get_midpoint_outgroup())
-            tree.unroot()
-        except :
-            pass
+        # try:
+        tree.set_outgroup(tree.get_midpoint_outgroup())
+        tree.unroot()
+        # except :
+        #     pass
 
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
@@ -567,11 +567,11 @@ class methods(object) :
         for fname in glob(dist_file + '*') :
             os.unlink(fname)
 
-        try:
-            tree.set_outgroup(tree.get_midpoint_outgroup())
-            tree.unroot()
-        except :
-            pass
+        # try:
+        tree.set_outgroup(tree.get_midpoint_outgroup())
+        tree.unroot()
+        # except :
+        #     pass
 
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
@@ -595,11 +595,11 @@ class methods(object) :
         for node in tree.traverse() :
             node.dist *= profiles.shape[1]
 
-        try:
-            tree.set_outgroup(tree.get_midpoint_outgroup())
-            tree.unroot()
-        except :
-            pass
+        # try:
+        tree.set_outgroup(tree.get_midpoint_outgroup())
+        tree.unroot()
+        # except :
+        #     pass
 
         for leaf in tree.get_leaves() :
             leaf.name = names[int(leaf.name.strip("'"))]
@@ -673,10 +673,10 @@ def backend(**args) :
 
 
     names, profiles = [], []
-    try :
-        fin = open(params['profile']).readlines() if os.path.isfile(params['profile']) else params['profile'].split('\n')
-    except :
-        fin = params['profile'].split('\n')
+    # try :
+    fin = open(params['profile']).readlines() if os.path.isfile(params['profile']) else params['profile'].split('\n')
+    # except :
+    #     fin = params['profile'].split('\n')
 
     allele_cols = None
     for line_id, line in enumerate(fin) :
@@ -746,17 +746,17 @@ def backend(**args) :
                         leaf.add_child(name=n, dist=0.)
 
             for fname in (params['prof_file'], params['dist_file']) :
-                try:
-                    os.unlink(fname)
-                except :
-                    pass
+                # try:
+                os.unlink(fname)
+                # except :
+                #     pass
             return tre.write(format=1).replace("'", "")
         else :
             for fname in (params['prof_file'], params['dist_file']) :
-                try:
-                    os.unlink(fname)
-                except :
-                    pass
+                # try:
+                os.unlink(fname)
+                # except :
+                #     pass
             return '\n'.join(tre)
 
 def estimate_Consumption(platform, method, matrix, n_proc, n_loci, n_profile) :
