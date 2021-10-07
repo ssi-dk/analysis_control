@@ -173,17 +173,17 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
         job.result = list(result_seq_set)
     return job
 
-@app.post('/comparative/cgmlst/newick', response_model=Newick)
-async def generate_newick(job: Newick = None) -> Newick:
+@app.post('/comparative/cgmlst/tree', response_model=Newick)
+async def cgmlst_tree(job: Newick = None) -> Newick:
     """
-    Generate Newick for selected sequences
+    Generate minimum spanning tree for selected sequences based on cgMLST data.
     """
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
     job.result = MSTrees.backend(profile=profiles)
     return job
 
 @app.post('/comparative/cgmlst/profile_diffs', response_model=Newick)
-async def generate_newick(job: Newick = None) -> Newick:
+async def profile_diffs(job: Newick = None) -> Newick:
     """
     Show differences between requested allele profiles.
     """
