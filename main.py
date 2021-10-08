@@ -180,6 +180,9 @@ async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Generate minimum spanning tree for selected sequences based on cgMLST data.
     """
+    print(db.get_collection('trees'))
+    result = db.trees.insert_one({'created': datetime.now(), 'profiles': job.sequences})
+    print(result.inserted_id)
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
     job.result = MSTrees.backend(profile=profiles)
     return job

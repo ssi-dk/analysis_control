@@ -2,7 +2,7 @@ production:
   false
 
 mongo_key:
-  mongodb://localhost/test_bifrost
+  mongodb://localhost/bifrost_test
 
 hpc_account:
   username: not_the_real_one
