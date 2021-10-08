@@ -7,7 +7,7 @@ import subprocess
 import yaml
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
 
 from pymongo import MongoClient
@@ -175,6 +175,22 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
         job.result = list(result_seq_set)
     return job
 
+
+def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
+    found = list()
+    found.append(all_allele_profiles[0])  # Append header line to result
+    for prospect in all_allele_profiles:
+        for wanted in sequences:
+            i = prospect.index('\t')
+            if prospect[:i] == wanted:
+                found.append(prospect)
+    assert len(found) == len(sequences) + 1
+    return '\n'.join(found) + '\n'
+
+
+# def generate_tree(_id, profiles: str):
+#     db.
+
 @app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
 async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
@@ -197,6 +213,7 @@ async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     job.result = MSTrees.backend(profile=profiles)
     return job
 
+
 @app.post('/comparative/cgmlst/profile_diffs', response_model=ComparativeAnalysis)
 async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
@@ -205,17 +222,6 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
     job.result = 'Hej'
     return job
-
-def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
-    found = list()
-    found.append(all_allele_profiles[0])  # Append header line to result
-    for prospect in all_allele_profiles:
-        for wanted in sequences:
-            i = prospect.index('\t')
-            if prospect[:i] == wanted:
-                found.append(prospect)
-    assert len(found) == len(sequences) + 1
-    return '\n'.join(found) + '\n'
 
 
 
