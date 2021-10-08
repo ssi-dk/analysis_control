@@ -28,6 +28,7 @@ class Job(BaseModel):
     job_id: Optional[str] = None
     status: Optional[JobStatus] = JobStatus.Initializing
     error: Optional[str] = None
+    started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
     seconds: Optional[int] = None
 

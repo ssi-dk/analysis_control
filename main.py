@@ -179,10 +179,20 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
 async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Generate minimum spanning tree for selected sequences based on cgMLST data.
+    Trees are saved in MongoDB.
+    'type' can be 'S' (samples) or 'P' (allele profiles).
+    If type == 'S' we use sample names as 'elements'.
+    If type == 'P' we use allele profile hash id's as 'elements'.
     """
-    print(db.get_collection('trees'))
-    result = db.trees.insert_one({'created': datetime.now(), 'profiles': job.sequences})
-    print(result.inserted_id)
+    job.started_at = datetime.now()
+    _id = db.trees.insert_one({
+            'created': job.started_at,
+            'type': 'S',
+            'elements': job.sequences,
+            'species': job.species.replace('_', ' ')
+        }).inserted_id
+    job.job_id = str(_id)
+    job.status = JobStatus.Accepted
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
     job.result = MSTrees.backend(profile=profiles)
     return job
