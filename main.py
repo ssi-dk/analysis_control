@@ -188,11 +188,13 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
     return '\n'.join(found) + '\n'
 
 
-# def generate_tree(_id, profiles: str):
-#     db.
+def generate_tree(_id, profiles: str):
+    return db.trees.find_one_and_update(
+        {'_id': _id}, {'$set': {'tree': MSTrees.backend(profile=profiles)}})
+
 
 @app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
-async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
+async def cgmlst_tree(job: ComparativeAnalysis, background_tasks: BackgroundTasks) -> ComparativeAnalysis:
     """
     Generate minimum spanning tree for selected sequences based on cgMLST data.
     Trees are saved in MongoDB.
@@ -210,7 +212,7 @@ async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     job.job_id = str(_id)
     job.status = JobStatus.Accepted
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    job.result = MSTrees.backend(profile=profiles)
+    background_tasks.add_task(generate_tree, _id, profiles)
     return job
 
 
