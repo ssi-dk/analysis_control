@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import asyncio
-from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 import pathlib
-import json
 import subprocess
 import yaml
 from datetime import datetime
 
 from fastapi import FastAPI
 import pandas as pd
+
+from pymongo import MongoClient
 
 import MSTrees
 
@@ -22,7 +21,6 @@ from models import (
     BifrostJob,
     Newick,
     NearestNeighbors,
-    JobId,
     JobStatus,
 )
 
@@ -30,13 +28,17 @@ app = FastAPI(
     title='Analysis Control',
     version='0.6',
     description='API for controlling analysis jobs on the SOFI platform',
-    contact={'name': 'ssi.dk'},
+    contact={'name': 'Finn Gruwier Larsen', 'email': 'figl@ssi.dk'},
 )
 
 data = dict()
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
+
+mongo = MongoClient(config['mongo_key'])
+db = mongo.get_database()
+
 for k, v in config['species'].items():
     cgmlst_dir = pathlib.Path(v['cgmlst'])
 
