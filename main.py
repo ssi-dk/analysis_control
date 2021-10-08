@@ -19,7 +19,7 @@ from models import (
     BifrostAnalysisList,
     BifrostAnalysis,
     BifrostJob,
-    Newick,
+    ComparativeAnalysis,
     NearestNeighbors,
     JobStatus,
 )
@@ -175,8 +175,8 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
         job.result = list(result_seq_set)
     return job
 
-@app.post('/comparative/cgmlst/tree', response_model=Newick)
-async def cgmlst_tree(job: Newick = None) -> Newick:
+@app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
+async def cgmlst_tree(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Generate minimum spanning tree for selected sequences based on cgMLST data.
     """
@@ -184,8 +184,8 @@ async def cgmlst_tree(job: Newick = None) -> Newick:
     job.result = MSTrees.backend(profile=profiles)
     return job
 
-@app.post('/comparative/cgmlst/profile_diffs', response_model=Newick)
-async def profile_diffs(job: Newick = None) -> Newick:
+@app.post('/comparative/cgmlst/profile_diffs', response_model=ComparativeAnalysis)
+async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Show differences between requested allele profiles.
     """

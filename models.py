@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 from datetime import datetime
 
 from pydantic import BaseModel, Extra, Field, validator
@@ -36,6 +36,7 @@ class ComparativeAnalysis(Job):
     species: str
     sequences: Optional[List[str]] = None
     allele_hash_ids: Optional[List[str]] = None
+    result: Optional[Any] = None
 
     # Todo: add a validator that makes sure only sequences or allele_profiles is specified.
 
@@ -43,37 +44,6 @@ class ComparativeAnalysis(Job):
 class NearestNeighbors(ComparativeAnalysis):
     cutoff: int
     result: Optional[List[str]] = None
-
-
-class CgMLSTMethod(Enum):
-    single_linkage = 'single_linkage'
-    complete_linkage = 'complete_linkage'
-
-
-class StCutoffMap(BaseModel):
-    pass
-
-    class Config:
-        extra = Extra.allow
-
-
-class NewickTree(BaseModel):
-    __root__: str = Field(
-        ..., description='Newick representation of a comparative analysis'
-)
-
-
-class Newick(ComparativeAnalysis):
-    method: Optional[CgMLSTMethod] = None
-    identified_species: Optional[str] = None
-    st: Optional[StCutoffMap] = None
-    result: Optional[NewickTree] = None
-
-    @validator('sequences')
-    def at_least_two_sequences(cls, v):
-        if v is not None and len(v) < 2:
-            raise ValueError('CgMLST analyses require at least two sequences.')
-        return v
 
 
 class BifrostAnalysis(BaseModel):
