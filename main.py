@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import asyncio
-from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 import pathlib
-import json
 import subprocess
 import yaml
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
+
+from pymongo import MongoClient
 
 import MSTrees
 
@@ -20,9 +19,8 @@ from models import (
     BifrostAnalysisList,
     BifrostAnalysis,
     BifrostJob,
-    Newick,
+    ComparativeAnalysis,
     NearestNeighbors,
-    JobId,
     JobStatus,
 )
 
@@ -30,13 +28,17 @@ app = FastAPI(
     title='Analysis Control',
     version='0.6',
     description='API for controlling analysis jobs on the SOFI platform',
-    contact={'name': 'ssi.dk'},
+    contact={'name': 'Finn Gruwier Larsen', 'email': 'figl@ssi.dk'},
 )
 
 data = dict()
 
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
+
+mongo = MongoClient(config['mongo_key'])
+db = mongo.get_database()
+
 for k, v in config['species'].items():
     cgmlst_dir = pathlib.Path(v['cgmlst'])
 
@@ -173,23 +175,6 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
         job.result = list(result_seq_set)
     return job
 
-@app.post('/comparative/cgmlst/newick', response_model=Newick)
-async def generate_newick(job: Newick = None) -> Newick:
-    """
-    Generate Newick for selected sequences
-    """
-    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    job.result = MSTrees.backend(profile=profiles)
-    return job
-
-@app.post('/comparative/cgmlst/profile_diffs', response_model=Newick)
-async def generate_newick(job: Newick = None) -> Newick:
-    """
-    Show differences between requested allele profiles.
-    """
-    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    job.result = 'Hej'
-    return job
 
 def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
     found = list()
@@ -201,6 +186,44 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
                 found.append(prospect)
     assert len(found) == len(sequences) + 1
     return '\n'.join(found) + '\n'
+
+
+def generate_tree(_id, profiles: str):
+    return db.trees.find_one_and_update(
+        {'_id': _id}, {'$set': {'tree': MSTrees.backend(profile=profiles)}})
+
+
+@app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
+async def cgmlst_tree(job: ComparativeAnalysis, background_tasks: BackgroundTasks) -> ComparativeAnalysis:
+    """
+    Generate minimum spanning tree for selected sequences based on cgMLST data.
+    Trees are saved in MongoDB.
+    'type' can be 'S' (samples) or 'P' (allele profiles).
+    If type == 'S' we use sample names as 'elements'.
+    If type == 'P' we use allele profile hash id's as 'elements'.
+    """
+    job.started_at = datetime.now()
+    _id = db.trees.insert_one({
+            'created': job.started_at,
+            'type': 'S',
+            'elements': job.sequences,
+            'species': job.species.replace('_', ' ')
+        }).inserted_id
+    job.job_id = str(_id)
+    job.status = JobStatus.Accepted
+    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    background_tasks.add_task(generate_tree, _id, profiles)
+    return job
+
+
+@app.post('/comparative/cgmlst/profile_diffs', response_model=ComparativeAnalysis)
+async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
+    """
+    Show differences between requested allele profiles.
+    """
+    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    job.result = 'Hej'
+    return job
 
 
 
