@@ -184,13 +184,13 @@ def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str])
             i = prospect.index('\t')
             if prospect[:i] == wanted:
                 found.append(prospect)
-    assert len(found) == len(sequences) + 1
+    assert len(found) == len(sequences) + 1  # Header line
     return '\n'.join(found) + '\n'
 
 
 def generate_tree(_id, profiles: str):
     return db.trees.find_one_and_update(
-        {'_id': _id}, {'$set': {'tree': MSTrees.backend(profile=profiles)}})
+        {'_id': _id}, {'$set': {'tree': MSTrees.backend(profile=profiles), 'finished': datetime.now()}})
 
 
 @app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
@@ -204,7 +204,7 @@ async def cgmlst_tree(job: ComparativeAnalysis, background_tasks: BackgroundTask
     """
     job.started_at = datetime.now()
     _id = db.trees.insert_one({
-            'created': job.started_at,
+            'initialized': job.started_at,
             'type': 'S',
             'elements': job.sequences,
             'species': job.species.replace('_', ' ')
@@ -222,6 +222,7 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     Show differences between requested allele profiles.
     """
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    
     job.result = 'Hej'
     return job
 
