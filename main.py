@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import pathlib
 import subprocess
+from pydantic.typing import all_literal_values
 import yaml
 from datetime import datetime
 
@@ -39,7 +40,7 @@ with open('config.yaml') as file:
 mongo = MongoClient(config['mongo_key'])
 db = mongo.get_database()
 
-for k, v in config['species'].items():
+for k, v in config['species'].items():  # For each configured species
     cgmlst_dir = pathlib.Path(v['cgmlst'])
 
     distance_matrix_path = cgmlst_dir.joinpath('distance_matrix.tsv')
@@ -54,7 +55,12 @@ for k, v in config['species'].items():
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
     with open(allele_profile_path) as f:
-        data[k]['allele_profiles'] = f.readlines()
+        allele_profiles = f.readlines()
+        data[k]['allele_names'] = allele_profiles.pop(0).split('\t')[1:]
+        data[k]['allele_count'] = len(data[k]['allele_names'])
+        data[k]['allele_profiles'] = allele_profiles  # Den sidste får et \n i enden
+        print(data[k]['allele_profiles'])
+        del allele_profiles
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
@@ -222,12 +228,13 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     Show differences between requested allele profiles.
     """
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    i = profiles.index('\n')
-    all_allele_names = profiles[:i].split('\t')
-    all_allele_names.pop(0)  # First item is not an allele name
-    total_allele_count = len(all_allele_names)
+    profiles_to_show = list()
+    allele_names = data[job.species]['allele_names']
+    allele_count = data[job.species]['allele_count']
+    # while True:
+    #     try:
     
-    job.result = {'total_allele_count': total_allele_count, 'all_allele_names': all_allele_names}
+    job.result = {'total_allele_count': allele_count, 'all_allele_names': allele_names}
     return job
 
 
