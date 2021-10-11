@@ -222,8 +222,11 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     Show differences between requested allele profiles.
     """
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    i = profiles.index('\n')
+    header_line = profiles[:i]
+    all_allele_names = header_line.split('\t')
     
-    job.result = 'Hej'
+    job.result = all_allele_names
     return job
 
 
