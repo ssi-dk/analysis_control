@@ -224,8 +224,10 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
     i = profiles.index('\n')
     all_allele_names = profiles[:i].split('\t')
+    all_allele_names.pop(0)  # First item is not an allele name
+    total_allele_count = len(all_allele_names)
     
-    job.result = all_allele_names
+    job.result = {'total_allele_count': total_allele_count, 'all_allele_names': all_allele_names}
     return job
 
 
