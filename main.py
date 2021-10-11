@@ -55,12 +55,12 @@ for k, v in config['species'].items():  # For each configured species
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
     with open(allele_profile_path) as f:
-        allele_profiles = f.readlines()
-        data[k]['allele_names'] = allele_profiles.pop(0).split('\t')[1:]
+        profiles_as_tabbed_lines = f.readlines()
+        data[k]['allele_names'] = profiles_as_tabbed_lines.pop(0).split('\t')[1:]
         data[k]['allele_count'] = len(data[k]['allele_names'])
-        data[k]['allele_profiles'] = allele_profiles  # Den sidste får et \n i enden
+        data[k]['allele_profiles'] = profiles_as_tabbed_lines  # Den sidste får et \n i enden
         print(data[k]['allele_profiles'])
-        del allele_profiles
+        del profiles_as_tabbed_lines
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
