@@ -217,9 +217,9 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Show differences between requested allele profiles.
     """
-    all_allele_profiles = data[job.species]['allele_profiles']
-    profiles = [all_allele_profiles.loc[sequence_id] for sequence_id in job.sequences]
-    profiles_to_show = list()
+    df: pd.DataFrame = data[job.species]['allele_profiles']
+    filtered_df = df.loc[job.sequences]
+    print(type(filtered_df))
     job.result = {'Hej'}
     return job
 
