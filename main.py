@@ -42,25 +42,17 @@ db = mongo.get_database()
 
 for k, v in config['species'].items():  # For each configured species
     cgmlst_dir = pathlib.Path(v['cgmlst'])
-
-    distance_matrix_path = cgmlst_dir.joinpath('distance_matrix.tsv')
-    start = datetime.now()
     data[k] = dict()
+
+    start = datetime.now()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k]['distance_matrix'] = pd.read_csv(distance_matrix_path, sep=' ', index_col=0, header=None)
+    data[k]['distance_matrix'] = pd.read_csv(cgmlst_dir.joinpath('distance_matrix.tsv'), sep=' ', index_col=0, header=None)
     finish = datetime.now()
     print(f"Finished loading distance matrix for {k} in {finish - start}")
 
-    allele_profile_path = cgmlst_dir.joinpath('allele_profiles.tsv')
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
-    with open(allele_profile_path) as f:
-        profiles_as_tabbed_lines = f.readlines()
-        data[k]['allele_names'] = profiles_as_tabbed_lines.pop(0).split('\t')[1:]
-        data[k]['allele_count'] = len(data[k]['allele_names'])
-        data[k]['allele_profiles'] = profiles_as_tabbed_lines  # Den sidste får et \n i enden
-        print(data[k]['allele_profiles'])
-        del profiles_as_tabbed_lines
+    data[k]['allele_profiles'] = pd.read_csv(cgmlst_dir.joinpath('allele_profiles.tsv'), sep='\t', index_col=0, header=0)
     finish = datetime.now()
     print(f"Finished loading allele profiles for {k} in {finish - start}")
 
@@ -182,21 +174,18 @@ async def generate_nearest_neighbors(job: NearestNeighbors) -> NearestNeighbors:
     return job
 
 
-def lookup_allele_profiles(sequences: list[str], all_allele_profiles: list[str]):
-    found = list()
-    found.append(all_allele_profiles[0])  # Append header line to result
-    for prospect in all_allele_profiles:
-        for wanted in sequences:
-            i = prospect.index('\t')
-            if prospect[:i] == wanted:
-                found.append(prospect)
-    assert len(found) == len(sequences) + 1  # Header line
-    return '\n'.join(found) + '\n'
-
-
-def generate_tree(_id, profiles: str):
+def generate_tree(_id, species: str, profiles: list[pd.Series]):
+    # profile_str is a string in the format MSTrees.backend needs for input.
+    # First add header by looking it up directly from 'data'.
+    col_names: list = data[species]['allele_profiles'].columns.tolist()
+    profile_str = '\t'.join(col_names) + '\n'
+    for profile in profiles:
+        p_list = profile.to_list()
+        p_str = '\t'.join([str(v) for v in p_list])
+        profile_str = profile_str + p_str + '\n'
+    tree = MSTrees.backend(profile=profile_str)
     return db.trees.find_one_and_update(
-        {'_id': _id}, {'$set': {'tree': MSTrees.backend(profile=profiles), 'finished': datetime.now()}})
+        {'_id': _id}, {'$set': {'tree': tree, 'finished': datetime.now()}})
 
 
 @app.post('/comparative/cgmlst/tree', response_model=ComparativeAnalysis)
@@ -217,8 +206,9 @@ async def cgmlst_tree(job: ComparativeAnalysis, background_tasks: BackgroundTask
         }).inserted_id
     job.job_id = str(_id)
     job.status = JobStatus.Accepted
-    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
-    background_tasks.add_task(generate_tree, _id, profiles)
+    all_allele_profiles: pd.DataFrame = data[job.species]['allele_profiles']
+    profiles: list[pd.Series] = [all_allele_profiles.loc[sequence_id] for sequence_id in job.sequences]
+    background_tasks.add_task(generate_tree, _id, job.species, profiles)
     return job
 
 
@@ -227,14 +217,10 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     Show differences between requested allele profiles.
     """
-    profiles = lookup_allele_profiles(job.sequences, data[job.species]['allele_profiles'])
+    all_allele_profiles = data[job.species]['allele_profiles']
+    profiles = [all_allele_profiles.loc[sequence_id] for sequence_id in job.sequences]
     profiles_to_show = list()
-    allele_names = data[job.species]['allele_names']
-    allele_count = data[job.species]['allele_count']
-    # while True:
-    #     try:
-    
-    job.result = {'total_allele_count': allele_count, 'all_allele_names': allele_names}
+    job.result = {'Hej'}
     return job
 
 
