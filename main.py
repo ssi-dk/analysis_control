@@ -219,15 +219,16 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     """
     df: pd.DataFrame = data[job.species]['allele_profiles']
     filtered_df = df.loc[job.sequences]
-
+    columns_to_show = list()
     for label, content in filtered_df.items():
         for value in content:
             if value == "#FILE":
                 continue
-            print(value)
-        print()
+            if value == "-":
+                columns_to_show.append(label)
+                break
 
-    job.result = {'Hej'}
+    job.result = filtered_df[columns_to_show]
     return job
 
 
