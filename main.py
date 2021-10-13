@@ -7,6 +7,7 @@ import subprocess
 from pydantic.typing import all_literal_values
 import yaml
 from datetime import datetime
+from collections import Set
 
 from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
@@ -218,17 +219,23 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     Show differences between requested allele profiles.
     """
     df: pd.DataFrame = data[job.species]['allele_profiles']
-    filtered_df = df.loc[job.sequences]
+    filtered_df: pd.DataFrame = df.loc[job.sequences]
     columns_to_show = list()
     for label, content in filtered_df.items():
+        previous_value = None
         for value in content:
             if value == "#FILE":
                 continue
             if value == "-":
                 columns_to_show.append(label)
                 break
+            if value == previous_value:
+                continue
+            columns_to_show.append(label)
+            break
 
-    job.result = filtered_df[columns_to_show]
+    result_df: pd.DataFrame = filtered_df[columns_to_show]
+    job.result = result_df.to_dict()
     return job
 
 
