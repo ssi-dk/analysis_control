@@ -123,12 +123,10 @@ def status_bifrost(job_id: str) -> BifrostJob:
         env=os.environ,
     )
     process_out, process_error = process.communicate()
-    if process_out:
-        # Todo: set job.status after parsing process_out
-        job.status = JobStatus.Running
-    if process_error:
-        job.error = (str(process_error, 'utf-8')).rstrip()
-        job.status = JobStatus.Failed
+    job.process_out = process_out.decode('utf-8').replace('\n', '')
+    print(process_out)
+    job.process_error = process_error.decode('utf-8').replace('\n', '')
+    print(process_error)
     return job
 
 
