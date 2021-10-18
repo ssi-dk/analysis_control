@@ -101,12 +101,14 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
         env=os.environ,
     )
     process_out, process_error = process.communicate()
-    if process_out:
-        job.job_id = (str(process_out, 'utf-8')).rstrip()
-        job.status = JobStatus.Queued
-    if process_error:
-        job.error = (str(process_error, 'utf-8')).rstrip()
+    job.process_out = process_out.decode('utf-8').replace('\n', '')
+    print(process_out)
+    job.process_error = process_error.decode('utf-8').replace('\n', '')
+    print(process_error)
+    if 'error' in job.process_out or len(job.process_error) > 0:
         job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Accepted
     return job
 
 
