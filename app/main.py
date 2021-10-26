@@ -47,15 +47,23 @@ for k, v in config['species'].items():  # For each configured species
 
     start = datetime.now()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k]['distance_matrix'] = pd.read_csv(cgmlst_dir.joinpath('distance_matrix.tsv'), sep=' ', index_col=0, header=None)
-    finish = datetime.now()
-    print(f"Finished loading distance matrix for {k} in {finish - start}")
+    distance_matrix_path = cgmlst_dir.joinpath('distance_matrix.tsv')
+    try:
+        data[k]['distance_matrix'] = pd.read_csv(distance_matrix_path, sep=' ', index_col=0, header=None)
+        finish = datetime.now()
+        print(f"Finished loading distance matrix for {k} in {finish - start}")
+    except FileNotFoundError:
+        print(f"Distance matrix file not found: {distance_matrix_path}")
 
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
-    data[k]['allele_profiles'] = pd.read_csv(cgmlst_dir.joinpath('allele_profiles.tsv'), sep='\t', index_col=0, header=0)
-    finish = datetime.now()
-    print(f"Finished loading allele profiles for {k} in {finish - start}")
+    try:
+        allele_profile_path = cgmlst_dir.joinpath('allele_profiles.tsv')
+        data[k]['allele_profiles'] = pd.read_csv(allele_profile_path, sep='\t', index_col=0, header=0)
+        finish = datetime.now()
+        print(f"Finished loading allele profiles for {k} in {finish - start}")
+    except FileNotFoundError:
+        print(f"Allele profile file file not found: {allele_profile_path}")
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
 def list_hpc_analysis() -> BifrostAnalysisList:
