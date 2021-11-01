@@ -6,8 +6,8 @@ services:
       - 8000:80
     volumes:
       - type: bind
-        source: $HOST/home/finn/species
-        target: /chewie_data
+        source: $AC_CONFIG
+        target: /config.yaml
       - type: bind
-        source: $HOST/home/finn/config.yaml
-        target: /container/location
+        source: $CHEWIE_DATA
+        target: /chewie_data

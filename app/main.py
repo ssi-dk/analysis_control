@@ -35,7 +35,7 @@ app = FastAPI(
 
 data = dict()
 
-with open('../config.yaml') as file:
+with open('/config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 mongo = MongoClient(config['mongo_key'])
