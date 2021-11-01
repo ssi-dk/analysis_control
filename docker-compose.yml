@@ -7,7 +7,7 @@ services:
     volumes:
       - type: bind
         source: $AC_CONFIG
-        target: /config.yaml
+        target: /app/config.yaml
       - type: bind
         source: $CHEWIE_DATA
         target: /chewie_data
