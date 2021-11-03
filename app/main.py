@@ -38,7 +38,7 @@ data = dict()
 with open('./config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
-mongo = MongoClient(config['mongo_key'])
+mongo = MongoClient(os.getenv('MONGO_CONN'))
 db = mongo.get_database()
 
 for k, v in config['species'].items():  # For each configured species

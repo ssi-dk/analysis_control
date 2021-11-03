@@ -11,3 +11,5 @@ services:
       - type: bind
         source: $CHEWIE_DATA
         target: /chewie_data
+    environment:
+      - MONGO_CONN=$MONGO_CONN

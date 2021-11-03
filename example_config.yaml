@@ -1,9 +1,6 @@
 production:
   false
 
-mongo_key:
-  mongodb://localhost/bifrost_test
-
 hpc_account:
   username: not_the_real_one
   password: not_the_real_one
