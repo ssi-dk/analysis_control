@@ -12,6 +12,7 @@ from collections import Set
 from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
 from paramiko.client import SSHClient
+from paramiko import AutoAddPolicy
 from pymongo import MongoClient
 
 import MSTrees
@@ -118,6 +119,7 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     else:
         job.status = JobStatus.Accepted """
     ssh_client = SSHClient()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
     ssh_client.connect(config['qsub_host'])
     stdin, job.process_out, job.process_error = ssh_client.exec_command('ls -l')
     return job
