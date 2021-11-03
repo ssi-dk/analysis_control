@@ -1,6 +1,6 @@
 .vscode
 __pycache__
 config*.yaml
+docker-compose.override.yml
 tests/*.tsv
-fake_cluster_commands/last_pid.tmp
 tmp*
