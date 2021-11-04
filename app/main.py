@@ -137,6 +137,10 @@ def status_bifrost(job_id: str) -> BifrostJob:
     print(process_out)
     job.process_error = process_error.decode('utf-8').replace('\n', '')
     print(process_error)
+    if 'error' in job.process_out or len(job.process_error) > 0:
+        job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Succeeded
     return job
 
 
