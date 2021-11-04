@@ -83,11 +83,16 @@ def list_hpc_analysis() -> BifrostAnalysisList:
 def get_hpc_conn():
     ssh_client = SSHClient()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    hostname = os.getenv('HPC_HOSTNAME')
+    port = int(os.getenv('HPC_PORT'))
+    print(f"Connect to {hostname} on port {str(port)}")
+    username = os.getenv('HPC_USERNAME')
+    password = os.getenv('HPC_PASSWORD')
     ssh_client.connect(
-        hostname=os.getenv('HPC_HOSTNAME'),
-        port=os.getenv('HPC_PORT'),
-        username=os.getenv('HPC_USERNAME'),
-        password=os.getenv('HPC_PASSWORD')
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password
         )
     return ssh_client
 

@@ -13,3 +13,7 @@ services:
         target: /chewie_data
     environment:
       - MONGO_CONN=$MONGO_CONN
+      - HPC_HOSTNAME=$HPC_HOSTNAME
+      - HPC_PORT=$HPC_PORT
+      - HPC_USERNAME=$HPC_USERNAME
+      - HPC_PASSWORD=$HPC_PASSWORD
