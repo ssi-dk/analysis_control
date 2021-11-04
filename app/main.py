@@ -97,11 +97,11 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
             return job
     
-    command_prefix = config['hpc_command_prefix']
+    command_prefix = config['hpc']['command_prefix']
     launch_script = config['bifrost_launch_script']
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
-    print(command)
+    print(f"HPC command: {command}")
     ssh_client = SSHClient()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
     ssh_client.connect(
@@ -110,11 +110,15 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
         username=config['hpc']['username'],
         password=config['hpc']['password'],
         )
-    _stdin, stdout, stderr = ssh_client.exec_command('ls -l')
+    _stdin, stdout, stderr = ssh_client.exec_command(command)
 
     job.process_out = str(stdout.readlines())
     job.process_error = str(stderr.readlines())
     ssh_client.close()
+    if 'error' in job.process_out or len(job.process_error) > 0:
+        job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Accepted
     return job
 
 
