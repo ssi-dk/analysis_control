@@ -12,3 +12,4 @@ ssh_client.connect('localhost', username=username, password=password, pkey=mykey
 
 stdin, stdout, stderr = ssh_client.exec_command('uptime')
 print(stdout.readlines())
+ssh_client.close()

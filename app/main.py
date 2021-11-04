@@ -102,26 +102,19 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
     print(command)
-    """ process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-    )
-    process_out, process_error = process.communicate()
-    job.process_out = process_out.decode('utf-8').replace('\n', '')
-    print(process_out)
-    job.process_error = process_error.decode('utf-8').replace('\n', '')
-    print(process_error)
-    if 'error' in job.process_out or len(job.process_error) > 0:
-        job.status = JobStatus.Failed
-    else:
-        job.status = JobStatus.Accepted """
     ssh_client = SSHClient()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
-    ssh_client.connect(config['qsub_host'])
-    stdin, job.process_out, job.process_error = ssh_client.exec_command('ls -l')
+    ssh_client.connect(
+        hostname=config['hpc']['hostname'],
+        port=config['hpc']['port'],
+        username=config['hpc']['username'],
+        password=config['hpc']['password'],
+        )
+    _stdin, stdout, stderr = ssh_client.exec_command('ls -l')
+
+    job.process_out = str(stdout.readlines())
+    job.process_error = str(stderr.readlines())
+    ssh_client.close()
     return job
 
 
