@@ -84,10 +84,10 @@ def get_hpc_conn():
     ssh_client = SSHClient()
     ssh_client.set_missing_host_key_policy(AutoAddPolicy())
     ssh_client.connect(
-        hostname=config['hpc']['hostname'],
-        port=config['hpc']['port'],
-        username=config['hpc']['username'],
-        password=config['hpc']['password'],
+        hostname=os.getenv('HPC_HOSTNAME'),
+        port=os.getenv('HPC_PORT'),
+        username=os.getenv('HPC_USERNAME'),
+        password=os.getenv('HPC_PASSWORD')
         )
     return ssh_client
 
