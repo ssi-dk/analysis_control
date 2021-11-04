@@ -80,6 +80,16 @@ def list_hpc_analysis() -> BifrostAnalysisList:
             version=version))
     return response
 
+def get_hpc_conn():
+    ssh_client = SSHClient()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    ssh_client.connect(
+        hostname=config['hpc']['hostname'],
+        port=config['hpc']['port'],
+        username=config['hpc']['username'],
+        password=config['hpc']['password'],
+        )
+    return ssh_client
 
 @app.post('/bifrost/init', response_model=BifrostJob)
 def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
@@ -102,16 +112,8 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
     print(f"HPC command: {command}")
-    with SSHClient() as  ssh_client:
-        ssh_client.set_missing_host_key_policy(AutoAddPolicy())
-        ssh_client.connect(
-            hostname=config['hpc']['hostname'],
-            port=config['hpc']['port'],
-            username=config['hpc']['username'],
-            password=config['hpc']['password'],
-            )
-        _stdin, stdout, stderr = ssh_client.exec_command(command)
-
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
         job.process_out = str(stdout.readlines())
         job.process_error = str(stderr.readlines())
     if 'error' in job.process_out or len(job.process_error) > 0:
