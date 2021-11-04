@@ -126,22 +126,15 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
 @app.get('/bifrost/status', response_model=BifrostJob)
 def status_bifrost(job_id: str) -> BifrostJob:
     job = BifrostJob(job_id=job_id)
-    process = subprocess.Popen(
-        f"checkjob {job_id}",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-    )
-    process_out, process_error = process.communicate()
-    job.process_out = process_out.decode('utf-8').replace('\n', '')
-    print(process_out)
-    job.process_error = process_error.decode('utf-8').replace('\n', '')
-    print(process_error)
+    command = f"checkjob {job_id}"
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
+        job.process_out = str(stdout.readlines())
+        job.process_error = str(stderr.readlines())
     if 'error' in job.process_out or len(job.process_error) > 0:
         job.status = JobStatus.Failed
     else:
-        job.status = JobStatus.Succeeded
+        job.status = JobStatus.Accepted
     return job
 
 
