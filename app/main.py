@@ -11,7 +11,8 @@ from collections import Set
 
 from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
-
+from paramiko.client import SSHClient
+from paramiko import AutoAddPolicy
 from pymongo import MongoClient
 
 import MSTrees
@@ -42,7 +43,8 @@ mongo = MongoClient(os.getenv('MONGO_CONN'))
 db = mongo.get_database()
 
 for k, v in config['species'].items():  # For each configured species
-    cgmlst_dir = pathlib.Path(v['cgmlst'])
+    cgmlst_dir = pathlib.Path(os.getenv('CHEWIE_DATA'), v['cgmlst'])
+    print(f"cgmlst_dir: {cgmlst_dir}")
     data[k] = dict()
 
     start = datetime.now()
@@ -79,6 +81,21 @@ def list_hpc_analysis() -> BifrostAnalysisList:
             version=version))
     return response
 
+def get_hpc_conn():
+    ssh_client = SSHClient()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    hostname = os.getenv('HPC_HOSTNAME')
+    port = int(os.getenv('HPC_PORT'))
+    print(f"Connect to {hostname} on port {str(port)}")
+    username = os.getenv('HPC_USERNAME')
+    password = os.getenv('HPC_PASSWORD')
+    ssh_client.connect(
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password
+        )
+    return ssh_client
 
 @app.post('/bifrost/init', response_model=BifrostJob)
 def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
@@ -96,23 +113,15 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
             return job
     
-    command_prefix = config['hpc_command_prefix']
+    command_prefix = config['hpc']['command_prefix']
     launch_script = config['bifrost_launch_script']
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
-    print(command)
-    process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-    )
-    process_out, process_error = process.communicate()
-    job.process_out = process_out.decode('utf-8').replace('\n', '')
-    print(process_out)
-    job.process_error = process_error.decode('utf-8').replace('\n', '')
-    print(process_error)
+    print(f"HPC command: {command}")
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
+        job.process_out = str(stdout.readlines())
+        job.process_error = str(stderr.readlines())
     if 'error' in job.process_out or len(job.process_error) > 0:
         job.status = JobStatus.Failed
     else:
@@ -123,18 +132,15 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
 @app.get('/bifrost/status', response_model=BifrostJob)
 def status_bifrost(job_id: str) -> BifrostJob:
     job = BifrostJob(job_id=job_id)
-    process = subprocess.Popen(
-        f"checkjob {job_id}",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-    )
-    process_out, process_error = process.communicate()
-    job.process_out = process_out.decode('utf-8').replace('\n', '')
-    print(process_out)
-    job.process_error = process_error.decode('utf-8').replace('\n', '')
-    print(process_error)
+    command = f"checkjob {job_id}"
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
+        job.process_out = str(stdout.readlines())
+        job.process_error = str(stderr.readlines())
+    if 'error' in job.process_out or len(job.process_error) > 0:
+        job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Accepted
     return job
 
 

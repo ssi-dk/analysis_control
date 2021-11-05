@@ -12,4 +12,10 @@ services:
         source: $CHEWIE_DATA
         target: /chewie_data
     environment:
+      - AC_CONFIG=$AC_CONFIG
       - MONGO_CONN=$MONGO_CONN
+      - CHEWIE_DATA=$CHEWIE_DATA
+      - HPC_HOSTNAME=$HPC_HOSTNAME
+      - HPC_PORT=$HPC_PORT
+      - HPC_USERNAME=$HPC_USERNAME
+      - HPC_PASSWORD=$HPC_PASSWORD
