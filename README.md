@@ -6,7 +6,7 @@ an analysis backend.
 Analysis Control uses Poetry as Python package manager.
 
 # Basic installation
-Todo.
+To get the qsub command in Ubuntu, install the package slurm-wlm-torque.
 
 # Configuration
 Todo.

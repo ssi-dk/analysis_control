@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  analysis_control:
+    build: .
+    ports:
+      - 8000:80
+    volumes:
+      - type: bind
+        source: $AC_CONFIG
+        target: /app/config.yaml
+      - type: bind
+        source: $CHEWIE_DATA
+        target: /chewie_data
+    environment:
+      - AC_CONFIG=$AC_CONFIG
+      - MONGO_CONN=$MONGO_CONN
+      - CHEWIE_DATA=$CHEWIE_DATA
+      - HPC_HOSTNAME=$HPC_HOSTNAME
+      - HPC_PORT=$HPC_PORT
+      - HPC_USERNAME=$HPC_USERNAME
+      - HPC_PASSWORD=$HPC_PASSWORD

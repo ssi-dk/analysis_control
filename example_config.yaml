@@ -1,8 +1,10 @@
+# When running without Docker, a config file based on this template and named 'config.yaml' should be placed within
+# the 'app' folder.
+
+# When running with Docker, the file should be placed in a location which the envvar $AC_CONFIG points to.
+
 production:
   false
-
-mongo_key:
-  mongodb://localhost/bifrost_test
 
 hpc_account:
   username: not_the_real_one

@@ -59,4 +59,6 @@ class BifrostAnalysisList(BaseModel):
 class BifrostJob(Job):
     sequences: Optional[List[str]] = None
     analyses: Optional[List[str]] = None
-    run_id: Optional[str] = None  # _id on run in MongoDB
+    process_out: Optional[str] = None
+    process_error: Optional[str] = None
+    job_id: Optional[str] = None

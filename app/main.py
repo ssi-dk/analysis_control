@@ -11,7 +11,8 @@ from collections import Set
 
 from fastapi import FastAPI, BackgroundTasks
 import pandas as pd
-
+from paramiko.client import SSHClient
+from paramiko import AutoAddPolicy
 from pymongo import MongoClient
 
 import MSTrees
@@ -35,27 +36,36 @@ app = FastAPI(
 
 data = dict()
 
-with open('config.yaml') as file:
+with open('./config.yaml') as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
-mongo = MongoClient(config['mongo_key'])
+mongo = MongoClient(os.getenv('MONGO_CONN'))
 db = mongo.get_database()
 
 for k, v in config['species'].items():  # For each configured species
-    cgmlst_dir = pathlib.Path(v['cgmlst'])
+    cgmlst_dir = pathlib.Path(os.getenv('CHEWIE_DATA'), v['cgmlst'])
+    print(f"cgmlst_dir: {cgmlst_dir}")
     data[k] = dict()
 
     start = datetime.now()
     print(f"Start loading distance matrix for {k} at {start}")
-    data[k]['distance_matrix'] = pd.read_csv(cgmlst_dir.joinpath('distance_matrix.tsv'), sep=' ', index_col=0, header=None)
-    finish = datetime.now()
-    print(f"Finished loading distance matrix for {k} in {finish - start}")
+    distance_matrix_path = cgmlst_dir.joinpath('distance_matrix.tsv')
+    try:
+        data[k]['distance_matrix'] = pd.read_csv(distance_matrix_path, sep=' ', index_col=0, header=None)
+        finish = datetime.now()
+        print(f"Finished loading distance matrix for {k} in {finish - start}")
+    except FileNotFoundError:
+        print(f"Distance matrix file not found: {distance_matrix_path}")
 
     start = datetime.now()
     print(f"Start loading allele profiles for {k} at {start}")
-    data[k]['allele_profiles'] = pd.read_csv(cgmlst_dir.joinpath('allele_profiles.tsv'), sep='\t', index_col=0, header=0)
-    finish = datetime.now()
-    print(f"Finished loading allele profiles for {k} in {finish - start}")
+    try:
+        allele_profile_path = cgmlst_dir.joinpath('allele_profiles.tsv')
+        data[k]['allele_profiles'] = pd.read_csv(allele_profile_path, sep='\t', index_col=0, header=0)
+        finish = datetime.now()
+        print(f"Finished loading allele profiles for {k} in {finish - start}")
+    except FileNotFoundError:
+        print(f"Allele profile file file not found: {allele_profile_path}")
 
 @app.get('/bifrost/list_analyses', response_model=BifrostAnalysisList)
 def list_hpc_analysis() -> BifrostAnalysisList:
@@ -71,6 +81,21 @@ def list_hpc_analysis() -> BifrostAnalysisList:
             version=version))
     return response
 
+def get_hpc_conn():
+    ssh_client = SSHClient()
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    hostname = os.getenv('HPC_HOSTNAME')
+    port = int(os.getenv('HPC_PORT'))
+    print(f"Connect to {hostname} on port {str(port)}")
+    username = os.getenv('HPC_USERNAME')
+    password = os.getenv('HPC_PASSWORD')
+    ssh_client.connect(
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password
+        )
+    return ssh_client
 
 @app.post('/bifrost/init', response_model=BifrostJob)
 def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
@@ -88,48 +113,34 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
             return job
     
-    command_prefix = config['hpc_command_prefix']
+    command_prefix = config['hpc']['command_prefix']
     launch_script = config['bifrost_launch_script']
-    work_dir = config['bifrost_work_dir'] if config['production'] else \
-        pathlib.Path(__file__).parent.joinpath('fake_cluster_commands')
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
-    print(command)
-    process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-        cwd=work_dir
-    )
-    process_out, process_error = process.communicate()
-    if process_out:
-        job.job_id = (str(process_out, 'utf-8')).rstrip()
-        job.status = JobStatus.Queued
-    if process_error:
-        job.error = (str(process_error, 'utf-8')).rstrip()
+    print(f"HPC command: {command}")
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
+        job.process_out = str(stdout.readlines())
+        job.process_error = str(stderr.readlines())
+    if 'error' in job.process_out or len(job.process_error) > 0:
         job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Accepted
     return job
 
 
 @app.get('/bifrost/status', response_model=BifrostJob)
 def status_bifrost(job_id: str) -> BifrostJob:
     job = BifrostJob(job_id=job_id)
-    process = subprocess.Popen(
-        f"checkjob {job_id}",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        env=os.environ,
-    )
-    process_out, process_error = process.communicate()
-    if process_out:
-        # Todo: set job.status after parsing process_out
-        job.status = JobStatus.Running
-    if process_error:
-        job.error = (str(process_error, 'utf-8')).rstrip()
+    command = f"checkjob {job_id}"
+    with get_hpc_conn() as  hpc:
+        stdin, stdout, stderr = hpc.exec_command(command)
+        job.process_out = str(stdout.readlines())
+        job.process_error = str(stderr.readlines())
+    if 'error' in job.process_out or len(job.process_error) > 0:
         job.status = JobStatus.Failed
+    else:
+        job.status = JobStatus.Accepted
     return job
 
 
