@@ -43,7 +43,8 @@ mongo = MongoClient(os.getenv('MONGO_CONN'))
 db = mongo.get_database()
 
 for k, v in config['species'].items():  # For each configured species
-    cgmlst_dir = pathlib.Path(v['cgmlst'])
+    cgmlst_dir = pathlib.Path(os.getenv('CHEWIE_DATA'), v['cgmlst'])
+    print(f"cgmlst_dir: {cgmlst_dir}")
     data[k] = dict()
 
     start = datetime.now()
