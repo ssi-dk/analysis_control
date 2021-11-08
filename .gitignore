@@ -4,3 +4,4 @@ config*.yaml
 docker-compose.override.yml
 tests/*.tsv
 tmp*
+.env
