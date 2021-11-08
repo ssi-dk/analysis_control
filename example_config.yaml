@@ -1,28 +1,11 @@
-# When running without Docker, a config file based on this template and named 'config.yaml' should be placed within
-# the 'app' folder.
-
-# When running with Docker, the file should be placed in a location which the envvar $AC_CONFIG points to.
-
-production:
-  false
-
-hpc_account:
-  username: not_the_real_one
-  password: not_the_real_one
-  group: not_the_real_one
-  reservation_name: not_the_real_one
-
-hpc_command_prefix:
-  qsub -A fvst_ssi_dtu -W group_list=fvst_ssi_dtu -l nodes=1:ppn=40,advres=fvst_ssi_dtu_wiki_fodevarestyrelsen.16
+hpc:
+  command_prefix: qsub -A fvst_ssi_dtu -W group_list=fvst_ssi_dtu -l nodes=1:ppn=40,advres=fvst_ssi_dtu_wiki_fodevarestyrelsen.16
 
 bifrost_use_hpc:
   true
 
 bifrost_launch_script:
-  launch_bifrost.sh
-
-bifrost_work_dir:
-  /home/projects/ssi_dtu_fvst/whatever
+  /home/finn/.local/bin/launch_bifrost.sh
 
 bifrost_analyses:
   bifrost_min_read_check:
@@ -51,4 +34,4 @@ bifrost_analyses:
 
 species:
   Salmonella_enterica:
-    cgmlst: /home/finn/species/Salmonella_enterica/output/cgmlst
+    cgmlst: Salmonella_enterica/output/cgmlst
