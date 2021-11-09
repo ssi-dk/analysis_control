@@ -114,9 +114,9 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             return job
     
     command_prefix = os.getenv('HPC_COMMAND_PREFIX')
-    launch_script = os.getenv('BIFROST_LAUNCH_SCRIPT')
-    raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
-    command = f"{command_prefix} {raw_command}" if os.getenv('BIFROST_LAUNCH_SCRIPT') else raw_command
+    launch_script = pathlib.Path(os.getenv('BIFROST_SCRIPT_DIR'), 'launch_bifrost.sh')
+    raw_command = f"{launch_script} -s {' '.join(job.sequences)} -co {' '.join(job.analyses)}"
+    command = f"{command_prefix} {raw_command}"
     print(f"HPC command: {command}")
     with get_hpc_conn() as  hpc:
         stdin, stdout, stderr = hpc.exec_command(command)
