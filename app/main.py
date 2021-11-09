@@ -113,10 +113,10 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
             return job
     
-    command_prefix = config['hpc']['command_prefix']
-    launch_script = config['bifrost_launch_script']
+    command_prefix = os.getenv('HPC_COMMAND_PREFIX')
+    launch_script = os.getenv('BIFROST_LAUNCH_SCRIPT')
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -a {' '.join(job.analyses)}"
-    command = f"{command_prefix} {raw_command}" if config['bifrost_use_hpc'] else raw_command
+    command = f"{command_prefix} {raw_command}" if os.getenv('BIFROST_LAUNCH_SCRIPT') else raw_command
     print(f"HPC command: {command}")
     with get_hpc_conn() as  hpc:
         stdin, stdout, stderr = hpc.exec_command(command)

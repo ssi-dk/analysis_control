@@ -1,12 +1,3 @@
-hpc:
-  command_prefix: qsub -A fvst_ssi_dtu -W group_list=fvst_ssi_dtu -l nodes=1:ppn=40,advres=fvst_ssi_dtu_wiki_fodevarestyrelsen.16
-
-bifrost_use_hpc:
-  true
-
-bifrost_launch_script:
-  /home/finn/.local/bin/launch_bifrost.sh
-
 bifrost_analyses:
   bifrost_min_read_check:
     type: bifrost_component
