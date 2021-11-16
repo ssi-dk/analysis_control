@@ -77,7 +77,7 @@ def collect_allele_profile(allele_profile_file):
 
 def collect_allele_stats(allele_stats_file):
     # load allele stats
-    stats = pd.read_csv(allele_stats_file, index_col="Genome", sep="\t")
+    stats = pd.read_csv(allele_stats_file, index_col="sample", sep="\t")
     # allele_stats = stats.to_dict('list') # returns values as list
     allele_stats = stats.to_dict(orient='records')[
         0]  # returns values as integers, however entire dictionary is list; [0] casts to dict
@@ -152,7 +152,7 @@ def main():
     allele_numbers = collect_allele_profile(args.allele_profile)
 
     # convert allele stats tsv into dictionary
-    # allele_stats = collect_allele_stats(args.allele_stats)
+    allele_stats = collect_allele_stats(args.allele_stats)
     
     # combine sample metadata into dictionary
     if args.json_input:
@@ -162,7 +162,8 @@ def main():
     technical_metadata = collect_sample_info(args, parameter_format)
 
     # write json to file
-    metadict = {'technical_metadata': technical_metadata, 'allele_numbers': allele_numbers}
+    metadict = {'technical_metadata': technical_metadata, 'allele_numbers': allele_numbers,
+                'allele_stats': allele_stats}
 
     # convert to json string
     metadict_json = json.dumps(metadict, default=convert_np2number)
