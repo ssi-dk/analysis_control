@@ -112,9 +112,11 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
             job.status = JobStatus.Rejected
             job.error = f"Could not find a Bifrost analysis with the identifier '{analysis}'."
             return job
-    
+
     command_prefix = os.getenv('HPC_COMMAND_PREFIX')
-    launch_script = pathlib.Path(os.getenv('BIFROST_SCRIPT_DIR'), 'launch_bifrost.sh')
+    script_dir = os.getenv('BIFROST_SCRIPT_DIR')
+    script_name = os.getenv('BIFROST_SCRIPT_NAME')
+    launch_script = pathlib.Path(script_dir, script_name)
     raw_command = f"{launch_script} -s {' '.join(job.sequences)} -co {' '.join(job.analyses)}"
     command = f"{command_prefix} {raw_command}"
     print(f"HPC command: {command}")
@@ -122,7 +124,7 @@ def init_bifrost_job(job: BifrostJob = None) -> BifrostJob:
         stdin, stdout, stderr = hpc.exec_command(command)
         job.process_out = str(stdout.readlines())
         job.process_error = str(stderr.readlines())
-    if 'error' in job.process_out or len(job.process_error) > 0:
+    if 'error' in job.process_out:
         job.status = JobStatus.Failed
     else:
         job.status = JobStatus.Accepted
@@ -248,6 +250,3 @@ async def profile_diffs(job: ComparativeAnalysis = None) -> ComparativeAnalysis:
     result_df: pd.DataFrame = filtered_df[columns_to_show]
     job.result = result_df.to_dict()
     return job
-
-
-
